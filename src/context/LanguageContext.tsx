@@ -29,8 +29,7 @@ const translations: Record<Language, Record<string, string>> = {
     current: 'En cours',
     upcoming: 'À venir',
     previous: 'Précédents',
-    help: 'Aide',
-    shoppingList: 'Ma liste de courses'
+    help: 'Aide'
   },
   ar: {
     products: 'المنتجات',
@@ -51,8 +50,7 @@ const translations: Record<Language, Record<string, string>> = {
     current: 'الحالي',
     upcoming: 'القادم',
     previous: 'السابق',
-    help: 'مساعدة',
-    shoppingList: 'قائمة مشترياتي'
+    help: 'مساعدة'
   }
 };
 

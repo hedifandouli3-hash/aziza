@@ -108,7 +108,7 @@ export const ProductsPage: React.FC = () => {
       <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
         <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
         <span>
-          <strong>Catalogue de démonstration :</strong> Tous les prix en Dinars Tunisiens (DT) et fiches produits sont stockés localement dans le frontend pour tester la navigation, la recherche et la constitution de panier.
+          <strong>Catalogue de démonstration :</strong> Tous les prix en Dinars Tunisiens (DT) et fiches produits sont stockés localement dans le frontend pour explorer le catalogue, la recherche et la découverte des offres.
         </span>
       </div>
 
@@ -233,7 +233,7 @@ export const ProductsPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setLocalSearch('');
+                  setLocalSearch(null);
                   const newParams = new URLSearchParams(searchParams);
                   newParams.delete('q');
                   setSearchParams(newParams);
@@ -254,9 +254,9 @@ export const ProductsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Products Grid */}
+      {/* Products Grid (2 on mobile, 3 on tablet, 5 on desktop) */}
       {filteredProducts.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5">
           {filteredProducts.map((product: Product) => (
             <ProductCard key={product.id} product={product} />
           ))}

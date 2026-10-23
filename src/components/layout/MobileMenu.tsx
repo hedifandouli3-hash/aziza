@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { X, ShoppingBag, BookOpen, MapPin, Info, Phone, Globe, ChevronRight } from 'lucide-react';
+import { X, Layers, BookOpen, MapPin, Info, Phone, Globe, ChevronRight } from 'lucide-react';
 import { Logo } from '../common/Logo';
 import { useLanguage } from '../../context/LanguageContext';
 import { MAIN_NAV_ITEMS } from '../../data/navigation';
@@ -18,7 +18,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const getIcon = (to: string) => {
     switch (to) {
       case '/produits':
-        return ShoppingBag;
+        return Layers;
       case '/catalogues':
         return BookOpen;
       case '/magasins':
@@ -28,7 +28,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
       case '/contact':
         return Phone;
       default:
-        return ShoppingBag;
+        return Layers;
     }
   };
 

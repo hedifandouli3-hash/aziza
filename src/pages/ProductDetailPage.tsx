@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  Heart,
-  ShoppingBag,
   MapPin,
   Check,
   ChevronRight,
@@ -15,7 +13,6 @@ import { STORES } from '../data/stores';
 import { Badge } from '../components/common/Badge';
 import { ProductCard } from '../components/common/ProductCard';
 import { ImageWithFallback } from '../components/common/ImageWithFallback';
-import { useShoppingList } from '../context/ShoppingListContext';
 import type { Product, Category, Store } from '../types';
 
 export const ProductDetailPage: React.FC = () => {
@@ -27,9 +24,7 @@ export const ProductDetailPage: React.FC = () => {
   );
   const [selectedCity, setSelectedCity] = useState<string>('Tunis');
   const [hasCheckedAvailability, setHasCheckedAvailability] = useState<boolean>(true);
-
-  const { addItem, removeItem, isInList } = useShoppingList();
-  const inList = product ? isInList(product.id) : false;
+  const [copied, setCopied] = useState<boolean>(false);
 
   // Category info
   const category = CATEGORIES.find((c: Category) => c.slug === product.category);
@@ -49,14 +44,6 @@ export const ProductDetailPage: React.FC = () => {
     (p: Product) => p.category === product.category && p.id !== product.id
   ).slice(0, 4);
 
-  const handleToggleFavorite = () => {
-    if (inList) {
-      removeItem(product.id);
-    } else {
-      addItem(product);
-    }
-  };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -64,9 +51,11 @@ export const ProductDetailPage: React.FC = () => {
         text: `Découvrez ${product.name} à ${product.price.toFixed(3)} DT chez AZIZA !`,
         url: window.location.href
       }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Lien du produit copié dans le presse-papier !');
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }).catch(() => {});
     }
   };
 
@@ -145,19 +134,6 @@ export const ProductDetailPage: React.FC = () => {
                   {product.packageSize} {product.brand && `• ${product.brand}`}
                 </p>
               </div>
-
-              <button
-                type="button"
-                onClick={handleToggleFavorite}
-                aria-label={inList ? 'Retirer de ma liste' : 'Ajouter à ma liste'}
-                className={`p-2.5 rounded-full transition-colors shadow-2xs ${
-                  inList
-                    ? 'bg-[#E30613] text-white hover:bg-[#C0040F]'
-                    : 'bg-gray-100 text-gray-500 hover:text-[#E30613] hover:bg-red-50'
-                }`}
-              >
-                <Heart className={`w-5 h-5 ${inList ? 'fill-current' : ''}`} />
-              </button>
             </div>
 
             {/* Price block */}
@@ -213,22 +189,28 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Action buttons */}
           <div className="pt-2 flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => addItem(product)}
+            <Link
+              to="/magasins"
               className="flex-1 py-3 px-4 bg-[#E30613] hover:bg-[#C0040F] text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-colors"
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span>{inList ? 'Ajouter encore à ma liste' : 'Ajouter à ma liste'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleShare}
-              className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
-              title="Partager ce produit"
-            >
-              <Share2 className="w-4 h-4" />
-            </button>
+              <MapPin className="w-4 h-4" />
+              <span>Trouver en magasin AZIZA</span>
+            </Link>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={handleShare}
+                className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                title="Partager ce produit"
+              >
+                <Share2 className="w-4 h-4" />
+              </button>
+              {copied && (
+                <span className="absolute -top-8 right-0 bg-[#E30613] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-20">
+                  Lien copié !
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

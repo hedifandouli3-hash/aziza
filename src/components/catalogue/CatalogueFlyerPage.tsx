@@ -1,9 +1,7 @@
 import React from 'react';
 import { Badge } from '../common/Badge';
 import { Link } from 'react-router-dom';
-import { Plus, Eye } from 'lucide-react';
-import { useShoppingList } from '../../context/ShoppingListContext';
-import { PRODUCTS } from '../../data/products';
+import { ChevronRight } from 'lucide-react';
 import { ImageWithFallback } from '../common/ImageWithFallback';
 import type { CataloguePage } from '../../types';
 
@@ -18,16 +16,6 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
   pageNumber,
   totalPages
 }) => {
-  const { addItem } = useShoppingList();
-
-  const handleAddProduct = (productId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const product = PRODUCTS.find((p) => p.id === productId);
-    if (product) {
-      addItem(product);
-    }
-  };
-
   return (
     <div className="relative w-full h-full min-h-[500px] sm:min-h-[580px] bg-white rounded-lg shadow-inner overflow-hidden flex flex-col justify-between border border-gray-200 select-none">
       {/* Top Flyer Header with Red AZIZA bar */}
@@ -66,9 +54,10 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
         {page.products && page.products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {page.products.map((item) => (
-              <div
+              <Link
                 key={item.id}
-                className="group relative bg-white rounded-xl border border-gray-200 hover:border-[#E30613] p-3 shadow-2xs hover:shadow-md transition-all flex items-center gap-3"
+                to={`/produits/${item.id}`}
+                className="group relative bg-white rounded-xl border border-gray-200 hover:border-[#E30613] p-3 shadow-2xs hover:shadow-md transition-all flex items-center gap-3 text-left"
               >
                 {/* Discount Badge */}
                 {item.discount && (
@@ -88,7 +77,7 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
 
                 {/* Info & Price */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                  <h4 className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-[#E30613] transition-colors truncate">
                     {item.name}
                   </h4>
                   <div className="text-[11px] text-gray-500">
@@ -106,25 +95,11 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
                   </div>
                 </div>
 
-                {/* Quick Interactive Actions */}
-                <div className="flex flex-col gap-1.5">
-                  <button
-                    type="button"
-                    onClick={(e) => handleAddProduct(item.id, e)}
-                    className="w-7 h-7 rounded-lg bg-red-50 text-[#E30613] hover:bg-[#E30613] hover:text-white flex items-center justify-center transition-colors"
-                    title="Ajouter à ma liste de courses"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                  </button>
-                  <Link
-                    to={`/produits/${item.id}`}
-                    className="w-7 h-7 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 flex items-center justify-center transition-colors"
-                    title="Voir la fiche détaillée"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </Link>
+                {/* Arrow view */}
+                <div className="w-7 h-7 rounded-lg bg-gray-100 group-hover:bg-[#E30613] group-hover:text-white text-gray-500 flex items-center justify-center transition-colors flex-shrink-0">
+                  <ChevronRight className="w-4 h-4" />
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (

@@ -1,10 +1,8 @@
 import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { ShoppingListProvider } from './context/ShoppingListContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
-import { ShoppingListDrawer } from './components/common/ShoppingListDrawer';
 
 // Lazy loaded page components for optimal performance and chunk splitting
 const HomePage = lazy(() => import('./pages/HomePage').then((m) => ({ default: m.HomePage })));
@@ -41,38 +39,33 @@ const PageFallback: React.FC = () => (
 export const App: React.FC = () => {
   return (
     <LanguageProvider>
-      <ShoppingListProvider>
-        <BrowserRouter>
-          <ScrollToTop />
-          <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#1E293B]">
-            {/* Global Header */}
-            <Header />
+      <BrowserRouter>
+        <ScrollToTop />
+        <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#1E293B]">
+          {/* Global Header */}
+          <Header />
 
-            {/* Main Content Area */}
-            <main className="flex-1">
-              <Suspense fallback={<PageFallback />}>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/produits" element={<ProductsPage />} />
-                  <Route path="/produits/:id" element={<ProductDetailPage />} />
-                  <Route path="/catalogues" element={<CataloguesPage />} />
-                  <Route path="/catalogues/:id" element={<CatalogueReaderPage />} />
-                  <Route path="/magasins" element={<StoresPage />} />
-                  <Route path="/a-propos" element={<AboutPage />} />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </Suspense>
-            </main>
+          {/* Main Content Area */}
+          <main className="flex-1">
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/produits" element={<ProductsPage />} />
+                <Route path="/produits/:id" element={<ProductDetailPage />} />
+                <Route path="/catalogues" element={<CataloguesPage />} />
+                <Route path="/catalogues/:id" element={<CatalogueReaderPage />} />
+                <Route path="/magasins" element={<StoresPage />} />
+                <Route path="/a-propos" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Routes>
+            </Suspense>
+          </main>
 
-            {/* Global Footer */}
-            <Footer />
-
-            {/* Slide-out Shopping List Drawer */}
-            <ShoppingListDrawer />
-          </div>
-        </BrowserRouter>
-      </ShoppingListProvider>
+          {/* Global Footer */}
+          <Footer />
+        </div>
+      </BrowserRouter>
     </LanguageProvider>
   );
 };
