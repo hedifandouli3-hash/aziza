@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Eye } from 'lucide-react';
 import { useShoppingList } from '../../context/ShoppingListContext';
 import { PRODUCTS } from '../../data/products';
+import { ImageWithFallback } from '../common/ImageWithFallback';
 import type { CataloguePage } from '../../types';
 
 interface CatalogueFlyerPageProps {
@@ -78,7 +79,7 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
 
                 {/* Product Image */}
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-50 rounded-lg p-1 flex items-center justify-center flex-shrink-0">
-                  <img
+                  <ImageWithFallback
                     src={item.image}
                     alt={item.name}
                     className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform"
@@ -130,7 +131,7 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
           /* General flyer editorial layout for remaining pages */
           <div className="flex flex-col items-center justify-center text-center p-6 space-y-3">
             <div className="w-full max-w-sm aspect-video rounded-xl overflow-hidden shadow-xs border border-gray-100">
-              <img
+              <ImageWithFallback
                 src={page.image}
                 alt={page.title}
                 className="w-full h-full object-cover"
@@ -145,7 +146,7 @@ export const CatalogueFlyerPage: React.FC<CatalogueFlyerPageProps> = ({
       </div>
 
       {/* Bottom Flyer Footer */}
-      <div className="p-2.5 bg-gray-50 border-t border-gray-150 flex items-center justify-between text-[11px] text-gray-500 px-4">
+      <div className="p-2.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between text-[11px] text-gray-500 px-4">
         <span>www.aziza.tn • Prototype Démonstration UI/UX</span>
         <span className="font-bold text-[#E30613]">AZIZA Tunisie</span>
       </div>

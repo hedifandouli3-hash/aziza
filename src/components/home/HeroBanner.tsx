@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, ArrowRight, Percent } from 'lucide-react';
 import { HERO_SLIDES } from '../../data/banners';
 import { useLanguage } from '../../context/LanguageContext';
+import { ImageWithFallback } from '../common/ImageWithFallback';
 
 export const HeroBanner: React.FC = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -78,7 +79,7 @@ export const HeroBanner: React.FC = () => {
 
             {/* Main Product/Cart Image Container */}
             <div className="relative w-full max-w-sm sm:max-w-md aspect-4/3 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/30 transform hover:scale-102 transition-transform duration-500">
-              <img
+              <ImageWithFallback
                 src={slide.image}
                 alt={slide.title}
                 className="w-full h-full object-cover"

@@ -94,23 +94,37 @@ export const ContactPage: React.FC = () => {
 
       {/* Contact Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs flex items-start gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#E30613] flex items-center justify-center flex-shrink-0">
             <Phone className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-bold text-sm text-gray-900">Téléphone</h3>
             <p className="text-xs text-gray-500 mt-0.5">{COMPANY_CONTACT_INFO.openingHours}</p>
-            <a
-              href={`tel:${COMPANY_CONTACT_INFO.phone}`}
-              className="text-base font-black text-[#E30613] hover:underline mt-2 inline-block"
-            >
-              {COMPANY_CONTACT_INFO.phoneDisplay}
-            </a>
+            <div className="mt-2 space-y-1">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-emerald-600 block">Numéro Vert Gratuit :</span>
+                <a
+                  href={`tel:${COMPANY_CONTACT_INFO.tollFree.replace(/\s+/g, '')}`}
+                  className="text-base font-black text-[#E30613] hover:underline"
+                >
+                  {COMPANY_CONTACT_INFO.tollFree}
+                </a>
+              </div>
+              <div className="text-xs text-gray-500">
+                <span>Siège : </span>
+                <a
+                  href={`tel:${COMPANY_CONTACT_INFO.phone.replace(/\s+/g, '')}`}
+                  className="font-bold text-gray-700 hover:text-[#E30613]"
+                >
+                  {COMPANY_CONTACT_INFO.phoneDisplay}
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs flex items-start gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#E30613] flex items-center justify-center flex-shrink-0">
             <Mail className="w-6 h-6" />
           </div>
@@ -126,7 +140,7 @@ export const ContactPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs flex items-start gap-4">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#E30613] flex items-center justify-center flex-shrink-0">
             <MapPin className="w-6 h-6" />
           </div>
@@ -143,7 +157,7 @@ export const ContactPage: React.FC = () => {
       {/* Main Grid: Form on left, FAQ on right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Form Column */}
-        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-gray-150 shadow-xs">
+        <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-3xl border border-gray-200 shadow-xs">
           <div className="flex items-center justify-between gap-2 mb-2">
             <h2 className="text-xl font-black text-gray-900">Envoyez-nous un message</h2>
             <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
@@ -322,7 +336,7 @@ export const ContactPage: React.FC = () => {
 
         {/* FAQ Column */}
         <div className="lg:col-span-5 space-y-4">
-          <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs">
+          <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
             <div className="flex items-center gap-2 mb-4">
               <HelpCircle className="w-5 h-5 text-[#E30613]" />
               <h2 className="text-base font-black text-gray-900">Foire Aux Questions (FAQ)</h2>

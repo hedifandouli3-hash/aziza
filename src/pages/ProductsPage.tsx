@@ -109,7 +109,7 @@ export const ProductsPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-150 shadow-xs space-y-4">
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
           {/* Search Input */}
           <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
@@ -258,7 +258,7 @@ export const ProductsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-gray-150 p-12 text-center text-gray-500 space-y-3">
+        <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center text-gray-500 space-y-3">
           <Filter className="w-12 h-12 text-gray-300 mx-auto" />
           <h3 className="text-base font-bold text-gray-900">
             {isArabic ? 'لا توجد منتجات تطابق بحثكم' : 'Aucun produit ne correspond à vos critères'}

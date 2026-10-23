@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
               </div>
               <div>
                 <h4 className="font-bold text-sm text-gray-900">
-                  {isArabic ? 'أكثر من 400 مغازة' : 'Plus de 400 magasins'}
+                  {isArabic ? `أكثر من 500 مغازة` : `Plus de 500 magasins`}
                 </h4>
                 <p className="text-xs text-gray-500 mt-0.5">
                   {isArabic ? 'في كامل تراب الجمهورية التونسية' : 'Partout en Tunisie pour être toujours plus proche de vous'}
@@ -137,9 +137,15 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-[#E30613] flex-shrink-0" />
-                <a href={`tel:${COMPANY_CONTACT_INFO.phone}`} className="hover:text-[#E30613]">
-                  {COMPANY_CONTACT_INFO.phoneDisplay}
-                </a>
+                <div>
+                  <span className="font-bold text-gray-900">{COMPANY_CONTACT_INFO.tollFreeDisplay}</span>
+                  <div className="text-[11px] text-gray-500">
+                    Siège :{' '}
+                    <a href={`tel:${COMPANY_CONTACT_INFO.phone.replace(/\s+/g, '')}`} className="hover:text-[#E30613]">
+                      {COMPANY_CONTACT_INFO.phoneDisplay}
+                    </a>
+                  </div>
+                </div>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-[#E30613] flex-shrink-0" />
@@ -160,7 +166,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-gray-150 mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-3">
+        <div className="border-t border-gray-200 mt-6 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-3">
           <p>
             &copy; 2026 AZIZA Tunisie. Prototype UI/UX responsive frontend-only.
           </p>

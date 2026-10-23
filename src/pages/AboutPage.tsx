@@ -39,7 +39,7 @@ export const AboutPage: React.FC = () => {
 
       {/* Key Numbers Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs text-center">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-center">
           <div className="text-3xl sm:text-4xl font-black text-[#E30613]">{COMPANY_CONTACT_INFO.storeCount}</div>
           <div className="text-xs sm:text-sm font-bold text-gray-800 mt-1">
             {isArabic ? 'مغازة في تونس' : 'Magasins en Tunisie'}
@@ -49,7 +49,7 @@ export const AboutPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs text-center">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-center">
           <div className="text-3xl sm:text-4xl font-black text-[#E30613]">{COMPANY_CONTACT_INFO.governoratesCount}</div>
           <div className="text-xs sm:text-sm font-bold text-gray-800 mt-1">
             {isArabic ? 'ولاية مغطاة' : 'Gouvernorats couverts'}
@@ -59,7 +59,7 @@ export const AboutPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs text-center">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-center">
           <div className="text-3xl sm:text-4xl font-black text-[#E30613]">{COMPANY_CONTACT_INFO.employeesCount}</div>
           <div className="text-xs sm:text-sm font-bold text-gray-800 mt-1">
             {isArabic ? 'عون وإطار' : 'Collaborateurs'}
@@ -69,19 +69,19 @@ export const AboutPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-xs text-center">
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-center">
           <div className="text-3xl sm:text-4xl font-black text-[#E30613]">100%</div>
           <div className="text-xs sm:text-sm font-bold text-gray-800 mt-1">
             {isArabic ? 'تونسي 100%' : 'Engagement Tunisien'}
           </div>
           <p className="text-[11px] text-gray-400 mt-0.5">
-            {isArabic ? 'رأس مال وشراكات محلية' : 'Capital et partenaires locaux'}
+            {isArabic ? 'رأس مال وشراكات محلية' : 'Groupe Slama & partenaires locaux'}
           </p>
         </div>
       </div>
 
       {/* Story & Philosophy Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white p-6 sm:p-10 rounded-3xl border border-gray-150 shadow-xs">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white p-6 sm:p-10 rounded-3xl border border-gray-200 shadow-xs">
         <div className="space-y-4">
           <span className="text-xs font-black uppercase text-[#E30613] tracking-wider">
             {isArabic ? 'رسالتنا' : 'Notre Mission'}
@@ -138,7 +138,7 @@ export const AboutPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-5 rounded-2xl bg-white border border-gray-150 shadow-xs space-y-2.5">
+          <div className="p-5 rounded-2xl bg-white border border-gray-200 shadow-xs space-y-2.5">
             <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30613] flex items-center justify-center">
               <TrendingDown className="w-5 h-5" />
             </div>
@@ -152,7 +152,7 @@ export const AboutPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-gray-150 shadow-xs space-y-2.5">
+          <div className="p-5 rounded-2xl bg-white border border-gray-200 shadow-xs space-y-2.5">
             <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30613] flex items-center justify-center">
               <ShoppingBag className="w-5 h-5" />
             </div>
@@ -166,7 +166,7 @@ export const AboutPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-gray-150 shadow-xs space-y-2.5">
+          <div className="p-5 rounded-2xl bg-white border border-gray-200 shadow-xs space-y-2.5">
             <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30613] flex items-center justify-center">
               <Heart className="w-5 h-5" />
             </div>
@@ -180,7 +180,7 @@ export const AboutPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-gray-150 shadow-xs space-y-2.5">
+          <div className="p-5 rounded-2xl bg-white border border-gray-200 shadow-xs space-y-2.5">
             <div className="w-10 h-10 rounded-xl bg-red-50 text-[#E30613] flex items-center justify-center">
               <MapPin className="w-5 h-5" />
             </div>

@@ -48,7 +48,7 @@ export const CatalogueReaderPage: React.FC = () => {
       <CatalogueViewer catalogue={catalogue} />
 
       {/* Reader Guidance Footer */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-gray-500 bg-white p-4 rounded-2xl border border-gray-150">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 text-xs text-gray-500 bg-white p-4 rounded-2xl border border-gray-200">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-[#E30613]" />
           <span>

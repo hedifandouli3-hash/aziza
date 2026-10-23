@@ -65,7 +65,7 @@ export const CATALOGUE_PAGES: CataloguePage[] = [
         brand: 'Warda',
         price: 1.190,
         unit: '500 g',
-        image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=400&q=80',
+        image: 'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=400&q=80',
         top: 60,
         left: 25
       },
@@ -195,7 +195,7 @@ export const CATALOGUE_PAGES: CataloguePage[] = [
     pageNumber: 7,
     title: 'Boissons & Eaux Minérales',
     theme: 'Hydratation au quotidien',
-    image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=800&q=80',
+    image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80',
     products: [
       {
         id: 'eau-safia-pack',
@@ -205,7 +205,7 @@ export const CATALOGUE_PAGES: CataloguePage[] = [
         oldPrice: 4.500,
         discount: '-13%',
         unit: '6 x 1.5 L',
-        image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=400&q=80',
+        image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=400&q=80',
         top: 40,
         left: 50
       }

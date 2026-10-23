@@ -44,7 +44,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
       <div className="fixed inset-y-0 left-0 w-4/5 max-w-sm bg-white shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-200">
         <div>
           {/* Header */}
-          <div className="p-4 border-b border-gray-150 flex items-center justify-between">
+          <div className="p-4 border-b border-gray-200 flex items-center justify-between">
             <Logo size="sm" />
             <button
               type="button"
@@ -87,7 +87,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer Area: Language & Help */}
-        <div className="p-4 border-t border-gray-150 bg-gray-50/70 space-y-3">
+        <div className="p-4 border-t border-gray-200 bg-gray-50/70 space-y-3">
           {/* Language Switch */}
           <div className="flex items-center justify-between bg-white p-2 rounded-xl border border-gray-200">
             <div className="flex items-center gap-2 text-xs font-semibold text-gray-700">

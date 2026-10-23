@@ -25,7 +25,7 @@ export const HomePage: React.FC = () => {
       <PromoCards />
 
       {/* 5. AZIZA Commitments Section */}
-      <section className="my-10 bg-white rounded-3xl border border-gray-150 p-6 sm:p-10 shadow-xs">
+      <section className="my-10 bg-white rounded-3xl border border-gray-200 p-6 sm:p-10 shadow-xs">
         <div className="text-center max-w-2xl mx-auto mb-8">
           <span className="text-xs font-black uppercase text-[#E30613] tracking-wider">
             {isArabic ? 'التزامات عزيزة' : 'Engagements AZIZA'}

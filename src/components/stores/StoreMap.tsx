@@ -61,6 +61,29 @@ const MapController: React.FC<{ selectedStore: Store | null }> = ({ selectedStor
   return null;
 };
 
+// Component to ensure leaflet map tiles are rendered properly on mount and resize
+const MapResizer: React.FC = () => {
+  const map = useMap();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [map]);
+
+  return null;
+};
+
 export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSelectStore }) => {
   const [mapMode, setMapMode] = useState<'tiles' | 'stylized'>('tiles');
   const defaultCenter: [number, number] = [36.8065, 10.1815]; // Tunis
@@ -69,26 +92,26 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
   return (
     <div className="w-full h-full min-h-[450px] sm:min-h-[550px] rounded-2xl overflow-hidden border border-gray-200 shadow-sm relative z-0 flex flex-col">
       {/* Mode Switcher on top right */}
-      <div className="absolute top-3 right-3 z-[1000] bg-white/95 backdrop-blur-xs rounded-xl shadow-md p-1 border border-gray-200 flex items-center gap-1 text-xs font-bold text-gray-700">
+      <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-[1000] bg-white/95 backdrop-blur-xs rounded-xl shadow-md p-1 border border-gray-200 flex items-center gap-1 text-[11px] sm:text-xs font-bold text-gray-700">
         <button
           type="button"
           onClick={() => setMapMode('tiles')}
-          className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+          className={`px-2 sm:px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${
             mapMode === 'tiles' ? 'bg-[#E30613] text-white shadow-2xs' : 'hover:bg-gray-100 text-gray-600'
           }`}
         >
-          <Map className="w-3.5 h-3.5" />
-          <span>Carte OpenStreetMap</span>
+          <Map className="w-3.5 h-3.5 shrink-0" />
+          <span className="hidden xs:inline">Carte </span><span>OSM</span>
         </button>
         <button
           type="button"
           onClick={() => setMapMode('stylized')}
-          className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1.5 ${
+          className={`px-2 sm:px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 sm:gap-1.5 ${
             mapMode === 'stylized' ? 'bg-[#E30613] text-white shadow-2xs' : 'hover:bg-gray-100 text-gray-600'
           }`}
         >
-          <Compass className="w-3.5 h-3.5" />
-          <span>Vue Schématique</span>
+          <Compass className="w-3.5 h-3.5 shrink-0" />
+          <span>Schéma</span>
         </button>
       </div>
 
@@ -105,6 +128,7 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
 
+          <MapResizer />
           <MapController selectedStore={selectedStore} />
 
           {stores.map((store) => {
@@ -125,7 +149,7 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
                     </div>
                     <p className="text-xs text-gray-500 mt-1">{store.address}</p>
 
-                    <div className="mt-2 pt-2 border-t border-gray-150 space-y-1 text-xs text-gray-600">
+                    <div className="mt-2 pt-2 border-t border-gray-200 space-y-1 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-emerald-600" />
                         <span>{store.openingHours}</span>
@@ -169,7 +193,7 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
               Sélectionnez un magasin dans la liste pour voir sa fiche d&apos;informations ou basculez en mode <strong>Carte OpenStreetMap</strong> pour zoomer rue par rue.
             </p>
             {selectedStore && (
-              <div className="p-3 bg-red-50 rounded-2xl border border-red-150 text-left">
+              <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-left">
                 <div className="font-black text-sm text-[#E30613]">{selectedStore.name}</div>
                 <div className="text-xs text-gray-600 mt-0.5">{selectedStore.address}</div>
                 <div className="text-[11px] font-bold text-gray-500 mt-1">

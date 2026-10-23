@@ -11,7 +11,7 @@ export const PromoCards: React.FC = () => {
   return (
     <section className="my-10 sm:my-14 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Catalogues Banner Card */}
-      <div className="relative rounded-3xl bg-linear-to-br from-red-50 to-orange-50 border border-red-150 p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md transition-shadow">
+      <div className="relative rounded-3xl bg-linear-to-br from-red-50 to-orange-50 border border-red-200 p-6 sm:p-8 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md transition-shadow">
         <div className="relative z-10 space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E30613] text-white text-[11px] font-bold rounded-full">
             <BookOpen className="w-3.5 h-3.5" />

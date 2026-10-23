@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, BookOpen } from 'lucide-react';
 import { Badge } from './Badge';
+import { ImageWithFallback } from './ImageWithFallback';
 import type { Catalogue } from '../../types';
 
 interface CatalogueCardProps {
@@ -23,7 +24,7 @@ export const CatalogueCard: React.FC<CatalogueCardProps> = ({ catalogue }) => {
   };
 
   return (
-    <div className="group bg-white rounded-2xl border border-gray-150 p-3 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
+    <div className="group bg-white rounded-2xl border border-gray-200 p-3 shadow-2xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
       <div>
         {/* Cover Image & Badge */}
         <div className="relative aspect-3/4 rounded-xl overflow-hidden bg-gray-100 mb-3 shadow-inner">
@@ -39,7 +40,7 @@ export const CatalogueCard: React.FC<CatalogueCardProps> = ({ catalogue }) => {
               </span>
             </div>
           )}
-          <img
+          <ImageWithFallback
             src={catalogue.coverImage}
             alt={catalogue.title}
             loading="lazy"

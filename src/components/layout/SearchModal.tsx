@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, Tag, ArrowRight } from 'lucide-react';
 import { PRODUCTS } from '../../data/products';
+import { ImageWithFallback } from '../common/ImageWithFallback';
 import type { Product } from '../../types';
 
 interface SearchModalProps {
@@ -53,7 +54,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
 
       <div className="relative mx-auto max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
         {/* Search Input Bar */}
-        <form onSubmit={handleSearchAll} className="relative border-b border-gray-150 flex items-center px-4">
+        <form onSubmit={handleSearchAll} className="relative border-b border-gray-200 flex items-center px-4">
           <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
           <input
             ref={inputRef}
@@ -122,7 +123,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                   onClick={() => handleSelect(product.id)}
                   className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100"
                 >
-                  <img
+                  <ImageWithFallback
                     src={product.image}
                     alt={product.name}
                     className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-gray-100"

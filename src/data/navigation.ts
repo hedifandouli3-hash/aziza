@@ -50,14 +50,17 @@ export const FOOTER_SECTIONS: FooterSection[] = [
 ];
 
 export const COMPANY_CONTACT_INFO = {
-  address: 'Zone Industrielle Sidi Daoud, La Marsa, Tunis',
-  addressAr: 'المنطقة الصناعية سيدي داود، المرسى، تونس',
-  phone: '+216 71 000 000',
-  phoneDisplay: '+216 71 000 000',
+  name: 'Société Aziza de Commerce de Détail (Groupe Slama)',
+  address: '22, Rue de l’Électricité, Z.I. Ben Arous, 2013 Ben Arous, Tunisie',
+  addressAr: '22، نهج الكهرباء، المنطقة الصناعية بن عروس، 2013 بن عروس، تونس',
+  phone: '+216 71 384 251',
+  phoneDisplay: '+216 71 384 251',
+  tollFree: '80 10 20 80',
+  tollFreeDisplay: '80 10 20 80 (Numéro Vert)',
   email: 'contact@aziza.tn',
-  openingHours: 'Lun - Sam, 8h30 - 18h00',
-  openingHoursAr: 'الإثنين - السبت، 8:30 - 18:00',
-  storeCount: '+400',
+  openingHours: 'Lun - Sam, 8h30 - 19h00',
+  openingHoursAr: 'الإثنين - السبت، 8:30 - 19:00',
+  storeCount: '+500',
   governoratesCount: '24',
   employeesCount: '+3 500'
 };

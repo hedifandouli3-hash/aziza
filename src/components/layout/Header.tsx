@@ -37,7 +37,7 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-150 shadow-2xs">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-2xs">
         {/* Top Promotional Announcement & Prototype Demonstration Bar */}
         <div className="bg-[#E30613] text-white text-[11px] sm:text-xs font-semibold py-1.5 px-4 text-center flex items-center justify-center gap-2">
           <Sparkles className="w-3.5 h-3.5 animate-pulse" />
@@ -139,7 +139,7 @@ export const Header: React.FC = () => {
 
               {langDropdownOpen && (
                 <div
-                  className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-lg border border-gray-150 py-1 z-50 text-xs"
+                  className="absolute right-0 mt-1 w-28 bg-white rounded-xl shadow-lg border border-gray-200 py-1 z-50 text-xs"
                   onClick={() => setLangDropdownOpen(false)}
                 >
                   <button
@@ -182,13 +182,13 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Desktop Secondary Navigation Bar */}
-        <div className="hidden lg:block border-t border-gray-150 bg-white">
+        <div className="hidden lg:block border-t border-gray-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             {/* Left Nav items */}
             <div className="flex items-center gap-1">
               <Link
                 to="/produits"
-                className="flex items-center gap-2 py-3 px-4 text-xs font-bold text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border-r border-gray-150 mr-2"
+                className="flex items-center gap-2 py-3 px-4 text-xs font-bold text-gray-800 hover:bg-gray-50 rounded-lg transition-colors border-r border-gray-200 mr-2"
               >
                 <Layers className="w-4 h-4 text-[#E30613]" />
                 <span>{isArabic ? 'جميع الأقسام' : 'Tous les rayons'}</span>

@@ -92,7 +92,7 @@ export const StoresPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-gray-150 shadow-xs space-y-3">
+      <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-xs space-y-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           {/* Search Input */}
           <div className="relative flex-1">

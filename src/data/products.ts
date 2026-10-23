@@ -53,10 +53,10 @@ export const PRODUCTS: Product[] = [
     subCategory: 'Pâtes & Féculents',
     packageSize: '500 g',
     price: 1.190,
-    image: 'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=600&q=80',
     additionalImages: [
-      'https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=600&q=80',
       'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=600&q=80',
       'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=600&q=80'
     ],
     description: 'Pâtes de qualité supérieure, idéales pour tous vos plats du quotidien. Fabriquées à base de 100% semoule de blé dur sélectionné pour une tenue de cuisson irréprochable.',
@@ -227,9 +227,10 @@ export const PRODUCTS: Product[] = [
     price: 3.900,
     oldPrice: 4.500,
     discountPercent: 13,
-    image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=600&q=80',
     additionalImages: [
-      'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1589365278144-c9e705f843ba?auto=format&fit=crop&w=600&q=80'
     ],
     description: 'Eau minérale naturelle jaillissant des sources pures de Ksour. Faiblement minéralisée, recommandée pour les bébés et toute la famille.',
     features: ['Pureté originelle de source', 'Pack économique 6 bouteilles', 'Bouteilles 100% recyclables'],

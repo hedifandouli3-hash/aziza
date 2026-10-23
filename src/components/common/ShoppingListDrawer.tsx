@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Trash2, Printer, Plus, Minus, ShoppingBag, ArrowRight, Info } from 'lucide-react';
 import { useShoppingList } from '../../context/ShoppingListContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { ImageWithFallback } from './ImageWithFallback';
 import { Link } from 'react-router-dom';
 
 export const ShoppingListDrawer: React.FC = () => {
@@ -85,7 +86,7 @@ export const ShoppingListDrawer: React.FC = () => {
             ) : (
               items.map(({ product, quantity }) => (
                 <div key={product.id} className="py-3.5 flex items-center gap-3 first:pt-0 last:pb-0">
-                  <img
+                  <ImageWithFallback
                     src={product.image}
                     alt={product.name}
                     className="w-14 h-14 object-contain rounded-lg bg-gray-50 p-1 flex-shrink-0 border border-gray-100"

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { CATEGORIES } from '../../data/categories';
 import { MoreHorizontal } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
+import { ImageWithFallback } from '../common/ImageWithFallback';
 
 export const CategoryGrid: React.FC = () => {
   const { isArabic } = useLanguage();
@@ -36,10 +37,10 @@ export const CategoryGrid: React.FC = () => {
           <Link
             key={cat.id}
             to={`/produits?cat=${cat.slug}`}
-            className="group flex flex-col items-center p-3 rounded-2xl bg-white border border-gray-150 shadow-2xs hover:shadow-md hover:border-red-200 transition-all text-center"
+            className="group flex flex-col items-center p-3 rounded-2xl bg-white border border-gray-200 shadow-2xs hover:shadow-md hover:border-red-200 transition-all text-center"
           >
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden mb-2 bg-gray-50 p-1 flex items-center justify-center group-hover:scale-105 transition-transform duration-200">
-              <img
+              <ImageWithFallback
                 src={cat.image}
                 alt={cat.name}
                 className="w-full h-full object-cover rounded-full"
@@ -55,7 +56,7 @@ export const CategoryGrid: React.FC = () => {
         {/* 8th item: Plus de rayons */}
         <Link
           to="/produits"
-          className="group flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-gray-150 shadow-2xs hover:shadow-md hover:border-red-200 transition-all text-center min-h-[120px]"
+          className="group flex flex-col items-center justify-center p-3 rounded-2xl bg-white border border-gray-200 shadow-2xs hover:shadow-md hover:border-red-200 transition-all text-center min-h-[120px]"
         >
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-50 text-[#E30613] flex items-center justify-center mb-2 group-hover:scale-105 group-hover:bg-[#E30613] group-hover:text-white transition-all">
             <MoreHorizontal className="w-6 h-6" />

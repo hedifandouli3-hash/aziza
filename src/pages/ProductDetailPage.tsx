@@ -14,6 +14,7 @@ import { CATEGORIES } from '../data/categories';
 import { STORES } from '../data/stores';
 import { Badge } from '../components/common/Badge';
 import { ProductCard } from '../components/common/ProductCard';
+import { ImageWithFallback } from '../components/common/ImageWithFallback';
 import { useShoppingList } from '../context/ShoppingListContext';
 import type { Product, Category, Store } from '../types';
 
@@ -94,7 +95,7 @@ export const ProductDetailPage: React.FC = () => {
       {/* 2. Main Product Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Gallery Column (Thumbnail Strip on left + Large Preview on right) */}
-        <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-150 shadow-xs">
+        <div className="lg:col-span-5 flex flex-col-reverse sm:flex-row gap-4 bg-white p-4 sm:p-6 rounded-3xl border border-gray-200 shadow-xs">
           {/* Thumbnails vertical column */}
           <div className="flex sm:flex-col gap-2.5 overflow-x-auto sm:overflow-y-auto max-h-96">
             {allImages.map((img: string, idx: number) => (
@@ -108,7 +109,7 @@ export const ProductDetailPage: React.FC = () => {
                     : 'border-transparent hover:border-gray-200'
                 }`}
               >
-                <img
+                <ImageWithFallback
                   src={img}
                   alt={`${product.name} vue ${idx + 1}`}
                   className="max-h-full max-w-full object-contain"
@@ -124,7 +125,7 @@ export const ProductDetailPage: React.FC = () => {
                 <Badge type="discount">-{product.discountPercent}%</Badge>
               </div>
             )}
-            <img
+            <ImageWithFallback
               src={selectedImage || product.image}
               alt={product.name}
               className="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
@@ -133,7 +134,7 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Product Details & Information */}
-        <div className="lg:col-span-4 space-y-5 bg-white p-6 rounded-3xl border border-gray-150 shadow-xs">
+        <div className="lg:col-span-4 space-y-5 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
           <div>
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -232,7 +233,7 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Store Availability Card with Explicit Demonstration Labeling */}
-        <div className="lg:col-span-3 bg-white p-5 rounded-3xl border border-gray-150 shadow-xs space-y-4">
+        <div className="lg:col-span-3 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-red-50 text-[#E30613] flex items-center justify-center">
               <MapPin className="w-4 h-4" />
@@ -293,7 +294,7 @@ export const ProductDetailPage: React.FC = () => {
                 cityStores.map((store: Store) => (
                   <div
                     key={store.id}
-                    className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-150 flex items-start justify-between gap-2"
+                    className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-200 flex items-start justify-between gap-2"
                   >
                     <div>
                       <div className="font-bold text-xs text-gray-900">{store.name}</div>

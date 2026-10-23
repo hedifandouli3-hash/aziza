@@ -67,7 +67,7 @@ export const StoreCard: React.FC<StoreCardProps> = ({ store, isSelected = false,
         {store.services.map((svc) => (
           <span
             key={svc}
-            className="text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-150 px-2 py-0.5 rounded-md"
+            className="text-[10px] font-medium bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded-md"
           >
             {svc}
           </span>
