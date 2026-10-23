@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --aziza-red: #E30613;
+    --aziza-darkred: #C0040F;
+    --aziza-yellow: #FFCB05;
+  }
+
+  body {
+    background-color: #F8F9FA;
+    color: #1E293B;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+/* Custom Marker Styling for Leaflet */
+.aziza-marker {
+  background: transparent;
+  border: none;
+}
+
+.aziza-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 4px;
+}
+
+.aziza-popup .leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.4;
+}
+
+.aziza-popup .leaflet-popup-tip {
+  background: white;
+}
+
+/* Print styles for shopping list */
+@media print {
+  header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
