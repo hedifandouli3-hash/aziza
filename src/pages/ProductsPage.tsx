@@ -16,7 +16,9 @@ export const ProductsPage: React.FC = () => {
   const onlyPromos = searchParams.get('promos') === 'true';
 
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
-  const [localSearch, setLocalSearch] = useState(currentSearch);
+  const [localSearch, setLocalSearch] = useState<string | null>(null);
+
+  const searchValue = localSearch !== null ? localSearch : currentSearch;
 
   // Filter and sort products
   const filteredProducts = useMemo(() => {
@@ -68,17 +70,19 @@ export const ProductsPage: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const query = searchValue.trim();
     const newParams = new URLSearchParams(searchParams);
-    if (localSearch.trim()) {
-      newParams.set('q', localSearch.trim());
+    if (query) {
+      newParams.set('q', query);
     } else {
       newParams.delete('q');
     }
     setSearchParams(newParams);
+    setLocalSearch(null);
   };
 
   const clearAllFilters = () => {
-    setLocalSearch('');
+    setLocalSearch(null);
     setSearchParams({});
   };
 
@@ -115,17 +119,17 @@ export const ProductsPage: React.FC = () => {
           <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
             <input
               type="text"
-              value={localSearch}
+              value={searchValue}
               onChange={(e) => setLocalSearch(e.target.value)}
               placeholder={isArabic ? 'البحث بالاسم أو العلامة التجارية...' : 'Filtrer par nom ou marque...'}
               className="w-full pl-9 pr-10 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:border-[#E30613] focus:bg-white transition-all"
             />
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            {localSearch && (
+            {searchValue && (
               <button
                 type="button"
                 onClick={() => {
-                  setLocalSearch('');
+                  setLocalSearch(null);
                   const newParams = new URLSearchParams(searchParams);
                   newParams.delete('q');
                   setSearchParams(newParams);

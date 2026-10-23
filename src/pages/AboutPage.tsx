@@ -37,8 +37,18 @@ export const AboutPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Key Numbers Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      {/* Key Numbers Grid (Demonstration statistics) */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 px-1">
+          <span className="font-bold text-gray-700">
+            {isArabic ? 'أرقام مفتاحية (بيانات استدلالية)' : 'Chiffres clés du réseau (Données indicatives)'}
+          </span>
+          <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200/60">
+            {isArabic ? 'بيانات توضيحية لنموذج العرض' : 'Données illustratives de démonstration'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
         <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-center">
           <div className="text-3xl sm:text-4xl font-black text-[#E30613]">{COMPANY_CONTACT_INFO.storeCount}</div>
           <div className="text-xs sm:text-sm font-bold text-gray-800 mt-1">
@@ -79,6 +89,7 @@ export const AboutPage: React.FC = () => {
           </p>
         </div>
       </div>
+    </div>
 
       {/* Story & Philosophy Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-white p-6 sm:p-10 rounded-3xl border border-gray-200 shadow-xs">

@@ -88,8 +88,16 @@ export const ContactPage: React.FC = () => {
           Contactez-nous
         </h1>
         <p className="text-xs sm:text-sm text-gray-500 mt-2">
-          Découvrez les coordonnées réelles de l&apos;enseigne AZIZA Tunisie et testez le formulaire de contact avec validation client-side instantanée.
+          Coordonnées de démonstration pour ce prototype interactif AZIZA Tunisie et formulaire avec validation instantanée côté client.
         </p>
+      </div>
+
+      {/* Demonstration disclaimer */}
+      <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+        <Info className="w-4 h-4 text-amber-600 flex-shrink-0" />
+        <span>
+          <strong>Prototype de démonstration :</strong> Les numéros, horaires, adresses et emails ci-dessous sont présentés à titre indicatif pour la maquette frontend. Le formulaire ci-après fonctionne à 100% dans votre navigateur sans envoi réel de message ni traitement serveur.
+        </span>
       </div>
 
       {/* Contact Cards Row */}
@@ -99,26 +107,20 @@ export const ContactPage: React.FC = () => {
             <Phone className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">Téléphone</h3>
+            <h3 className="font-bold text-sm text-gray-900">Téléphone (Exemple)</h3>
             <p className="text-xs text-gray-500 mt-0.5">{COMPANY_CONTACT_INFO.openingHours}</p>
             <div className="mt-2 space-y-1">
               <div>
-                <span className="text-[10px] uppercase font-bold text-emerald-600 block">Numéro Vert Gratuit :</span>
-                <a
-                  href={`tel:${COMPANY_CONTACT_INFO.tollFree.replace(/\s+/g, '')}`}
-                  className="text-base font-black text-[#E30613] hover:underline"
-                >
+                <span className="text-[10px] uppercase font-bold text-emerald-600 block">Numéro Vert Indicatif :</span>
+                <span className="text-base font-black text-[#E30613]">
                   {COMPANY_CONTACT_INFO.tollFree}
-                </a>
+                </span>
               </div>
               <div className="text-xs text-gray-500">
                 <span>Siège : </span>
-                <a
-                  href={`tel:${COMPANY_CONTACT_INFO.phone.replace(/\s+/g, '')}`}
-                  className="font-bold text-gray-700 hover:text-[#E30613]"
-                >
+                <span className="font-bold text-gray-700">
                   {COMPANY_CONTACT_INFO.phoneDisplay}
-                </a>
+                </span>
               </div>
             </div>
           </div>
@@ -129,14 +131,11 @@ export const ContactPage: React.FC = () => {
             <Mail className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">Email Officiel</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Assistance générale</p>
-            <a
-              href={`mailto:${COMPANY_CONTACT_INFO.email}`}
-              className="text-sm font-bold text-[#E30613] hover:underline mt-2 inline-block"
-            >
+            <h3 className="font-bold text-sm text-gray-900">Email (Démonstration)</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Assistance générale prototype</p>
+            <span className="text-sm font-bold text-[#E30613] mt-2 inline-block">
               {COMPANY_CONTACT_INFO.email}
-            </a>
+            </span>
           </div>
         </div>
 
@@ -145,7 +144,7 @@ export const ContactPage: React.FC = () => {
             <MapPin className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-gray-900">Siège Social</h3>
+            <h3 className="font-bold text-sm text-gray-900">Siège Social (Exemple)</h3>
             <p className="text-xs text-gray-500 mt-0.5">Direction Générale AZIZA</p>
             <p className="text-xs font-semibold text-gray-800 mt-2">
               {COMPANY_CONTACT_INFO.address}

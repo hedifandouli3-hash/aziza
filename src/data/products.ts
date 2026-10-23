@@ -47,17 +47,17 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'pates-warda-500g',
-    name: 'Pâtes Warda',
+    name: 'Pâtes Warda Spaghetti N°2',
     brand: 'Warda',
     category: 'epicerie',
     subCategory: 'Pâtes & Féculents',
     packageSize: '500 g',
     price: 1.190,
-    image: 'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=600&q=80',
+    image: '/products/pates-warda.svg',
     additionalImages: [
+      '/products/pates-warda.svg',
       'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=600&q=80'
     ],
     description: 'Pâtes de qualité supérieure, idéales pour tous vos plats du quotidien. Fabriquées à base de 100% semoule de blé dur sélectionné pour une tenue de cuisson irréprochable.',
     features: ['100% Semoule de blé dur tunisienne', 'Excellente tenue à la cuisson', 'Sans additifs ni colorants'],

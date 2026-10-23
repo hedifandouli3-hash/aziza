@@ -92,8 +92,8 @@ export const HomePage: React.FC = () => {
             </h3>
             <p className="text-xs text-gray-500 mt-1">
               {isArabic
-                ? 'أكثر من 400 مغازة حي لقضاء حاجياتكم بسرعة بالقرب من منازلكم.'
-                : 'Plus de 400 magasins de quartier pour des courses rapides à deux pas de chez vous.'}
+                ? 'أكثر من 500 مغازة حي لقضاء حاجياتكم بسرعة بالقرب من منازلكم.'
+                : 'Plus de 500 magasins de quartier pour des courses rapides à deux pas de chez vous.'}
             </p>
           </div>
         </div>

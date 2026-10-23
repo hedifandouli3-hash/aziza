@@ -61,11 +61,11 @@ export const CATALOGUE_PAGES: CataloguePage[] = [
       },
       {
         id: 'pates-warda-500g',
-        name: 'Pâtes Warda Spéciale',
+        name: 'Pâtes Warda Spaghetti N°2',
         brand: 'Warda',
         price: 1.190,
         unit: '500 g',
-        image: 'https://images.unsplash.com/photo-1551462147-37885acc36f1?auto=format&fit=crop&w=400&q=80',
+        image: '/products/pates-warda.svg',
         top: 60,
         left: 25
       },

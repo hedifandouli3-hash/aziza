@@ -25,6 +25,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef<number | null>(null);
 
@@ -134,9 +135,11 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
         title: `${catalogue.title} - AZIZA Tunisie`,
         url: window.location.href
       }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Lien du catalogue copié dans le presse-papier !');
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        setCopiedToast(true);
+        setTimeout(() => setCopiedToast(false), 2000);
+      }).catch(() => {});
     }
   };
 
@@ -216,14 +219,21 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           >
             <ZoomIn className="w-4 h-4" />
           </button>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800"
-            title="Partager le catalogue"
-          >
-            <Share2 className="w-4 h-4" />
-          </button>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handleShare}
+              className="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+              title="Partager le catalogue"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+            {copiedToast && (
+              <span className="absolute -bottom-8 right-0 bg-[#E30613] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-30 animate-in fade-in">
+                Lien copié !
+              </span>
+            )}
+          </div>
           <button
             type="button"
             onClick={toggleFullscreen}

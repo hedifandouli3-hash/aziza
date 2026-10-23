@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Plus, Check } from 'lucide-react';
 import type { Product } from '../../types';
@@ -13,7 +13,14 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = false }) => {
   const { addItem, removeItem, isInList } = useShoppingList();
+  const [justAdded, setJustAdded] = useState(false);
   const inList = isInList(product.id);
+
+  const hasValidDiscount = Boolean(
+    product.discountPercent &&
+    product.oldPrice &&
+    product.oldPrice > product.price
+  );
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -29,6 +36,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
     e.preventDefault();
     e.stopPropagation();
     addItem(product);
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1200);
   };
 
   const formatPrice = (p: number) => {
@@ -40,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
       {/* Top action row: Promo badge & Heart icon */}
       <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-center justify-between pointer-events-none">
         <div>
-          {product.discountPercent ? (
+          {hasValidDiscount ? (
             <Badge type="discount" className="pointer-events-auto text-[11px] font-extrabold px-2 py-0.5">
               -{product.discountPercent}%
             </Badge>
@@ -96,7 +105,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
             <div className="text-base sm:text-lg font-black text-[#E30613] tracking-tight leading-none whitespace-nowrap">
               {formatPrice(product.price)} <span className="text-[10px] sm:text-xs font-bold text-[#E30613]">DT</span>
             </div>
-            {product.oldPrice ? (
+            {hasValidDiscount && product.oldPrice ? (
               <div className="text-[11px] text-gray-400 line-through mt-0.5 whitespace-nowrap">
                 {formatPrice(product.oldPrice)} DT
               </div>
@@ -108,14 +117,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, compact = fal
           <button
             type="button"
             onClick={handleAddToList}
-            title={inList ? 'Dans ma liste (cliquer pour ajouter +1)' : 'Ajouter à ma liste'}
+            aria-label={justAdded ? 'Ajouté à ma liste !' : inList ? 'Dans ma liste (+1)' : 'Ajouter à ma liste'}
+            title={justAdded ? 'Ajouté à la liste !' : inList ? 'Dans ma liste (cliquer pour +1)' : 'Ajouter à ma liste'}
             className={`p-2 rounded-xl text-xs font-medium flex items-center justify-center transition-all flex-shrink-0 ${
-              inList
+              justAdded
+                ? 'bg-emerald-600 text-white scale-105 shadow-xs'
+                : inList
                 ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                 : 'bg-red-50 text-[#E30613] hover:bg-[#E30613] hover:text-white'
             }`}
           >
-            {inList ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            {justAdded ? <Check className="w-4 h-4" /> : inList ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
           </button>
         </div>
       </div>
