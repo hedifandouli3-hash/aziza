@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   MapPin,
-  Check,
+  CheckCircle2,
+  XCircle,
   ChevronRight,
   Share2,
-  Info
+  Store as StoreIcon
 } from 'lucide-react';
 import { PRODUCTS } from '../data/products';
 import { CATEGORIES } from '../data/categories';
@@ -13,17 +14,27 @@ import { STORES } from '../data/stores';
 import { Badge } from '../components/common/Badge';
 import { ProductCard } from '../components/common/ProductCard';
 import { ImageWithFallback } from '../components/common/ImageWithFallback';
+import { StoreSelectorModal } from '../components/stores/StoreSelectorModal';
+import { useSelectedStore } from '../context/StoreContext';
+import { getProductStoreData, INVENTORY_DISCLAIMER } from '../data/inventory';
 import type { Product, Category, Store } from '../types';
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const product = PRODUCTS.find((p: Product) => p.id === id) || PRODUCTS[2]; // Default to Pâtes Warda matching design board
+  const product = PRODUCTS.find((p: Product) => p.id === id) || PRODUCTS[2]; // Fallback if id not found
+
+  const {
+    selectedStore,
+    selectStore,
+    isStoreSelectorOpen,
+    openStoreSelector,
+    closeStoreSelector
+  } = useSelectedStore();
 
   const [selectedImage, setSelectedImage] = useState<string>(
     product?.additionalImages?.[0] || product?.image || ''
   );
-  const [selectedCity, setSelectedCity] = useState<string>('Tunis');
-  const [hasCheckedAvailability, setHasCheckedAvailability] = useState<boolean>(true);
+  const [selectedCity, setSelectedCity] = useState<string>(selectedStore ? selectedStore.city : 'Tunis');
   const [copied, setCopied] = useState<boolean>(false);
 
   // Category info
@@ -33,6 +44,13 @@ export const ProductDetailPage: React.FC = () => {
   const allImages = product.additionalImages?.length
     ? product.additionalImages
     : [product.image];
+
+  // Store-specific inventory data for active selected store
+  const activeStoreData = selectedStore ? getProductStoreData(product.id, selectedStore.id) : null;
+  const isAvailableInSelectedStore = activeStoreData !== null ? activeStoreData.isAvailable : true;
+  const effectivePrice = activeStoreData?.storePrice ?? product.price;
+  const effectiveOldPrice = activeStoreData?.storeOldPrice ?? product.oldPrice;
+  const effectiveDiscountPercent = activeStoreData?.storeDiscountPercent ?? product.discountPercent;
 
   // Stores in selected city
   const cityStores = STORES.filter(
@@ -48,7 +66,7 @@ export const ProductDetailPage: React.FC = () => {
     if (navigator.share) {
       navigator.share({
         title: `${product.name} - AZIZA Tunisie`,
-        text: `Découvrez ${product.name} à ${product.price.toFixed(3)} DT chez AZIZA !`,
+        text: `Découvrez ${product.name} à ${effectivePrice.toFixed(3)} DT chez AZIZA !`,
         url: window.location.href
       }).catch(() => {});
     } else if (navigator.clipboard) {
@@ -61,23 +79,23 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
-      {/* 1. Breadcrumb navigation matching Panel 4 */}
+      {/* 1. Breadcrumb navigation */}
       <nav className="flex items-center gap-2 text-xs text-gray-500 overflow-x-auto whitespace-nowrap pb-1">
         <Link to="/" className="hover:text-[#E30613] transition-colors">
           Accueil
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
         <Link to="/produits" className="hover:text-[#E30613] transition-colors">
           Produits
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
         <Link
           to={`/produits?cat=${product.category}`}
           className="hover:text-[#E30613] transition-colors"
         >
           {category?.name || 'Épicerie'}
         </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
         <span className="text-gray-900 font-bold">{product.name}</span>
       </nav>
 
@@ -92,7 +110,7 @@ export const ProductDetailPage: React.FC = () => {
                 key={idx}
                 type="button"
                 onClick={() => setSelectedImage(img)}
-                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl p-1 bg-gray-50 border-2 transition-all flex items-center justify-center flex-shrink-0 ${
+                className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl p-1 bg-gray-50 border-2 transition-all flex items-center justify-center shrink-0 cursor-pointer ${
                   selectedImage === img
                     ? 'border-[#E30613] shadow-xs'
                     : 'border-transparent hover:border-gray-200'
@@ -100,7 +118,7 @@ export const ProductDetailPage: React.FC = () => {
               >
                 <ImageWithFallback
                   src={img}
-                  alt={`${product.name} vue ${idx + 1}`}
+                  alt={`${product.name} - vue ${idx + 1}`}
                   className="max-h-full max-w-full object-contain"
                 />
               </button>
@@ -109,9 +127,9 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Large Main Image Preview */}
           <div className="relative flex-1 aspect-square rounded-2xl bg-gray-50/70 p-4 flex items-center justify-center overflow-hidden border border-gray-100">
-            {product.discountPercent && (
+            {effectiveDiscountPercent && (
               <div className="absolute top-3 left-3 z-10">
-                <Badge type="discount">-{product.discountPercent}%</Badge>
+                <Badge type="discount">-{effectiveDiscountPercent}%</Badge>
               </div>
             )}
             <ImageWithFallback
@@ -123,7 +141,7 @@ export const ProductDetailPage: React.FC = () => {
         </div>
 
         {/* Product Details & Information */}
-        <div className="lg:col-span-4 space-y-5 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs">
+        <div className="lg:col-span-4 space-y-5 bg-white p-6 rounded-3xl border border-gray-200 shadow-xs text-left">
           <div>
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -137,16 +155,30 @@ export const ProductDetailPage: React.FC = () => {
             </div>
 
             {/* Price block */}
-            <div className="mt-4 pt-4 border-t border-gray-100 flex items-baseline gap-3">
+            <div className="mt-4 pt-4 border-t border-gray-100 flex items-baseline gap-3 flex-wrap">
               <span className="text-3xl font-black text-[#E30613] tracking-tight">
-                {product.price.toFixed(3)} <span className="text-sm font-bold">DT</span>
+                {effectivePrice.toFixed(3)} <span className="text-sm font-bold">DT</span>
               </span>
-              {product.oldPrice && (
+              {effectiveOldPrice && (
                 <span className="text-sm text-gray-400 line-through font-medium">
-                  {product.oldPrice.toFixed(3)} DT
+                  {effectiveOldPrice.toFixed(3)} DT
+                </span>
+              )}
+              {activeStoreData?.isStorePromo && (
+                <span className="text-[10px] font-bold text-white bg-[#E30613] px-2 py-0.5 rounded-full">
+                  Offre {selectedStore?.name}
                 </span>
               )}
             </div>
+
+            {selectedStore && (
+              <div className="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1.5">
+                <StoreIcon className="w-3.5 h-3.5 text-[#E30613]" />
+                <span>
+                  Prix affiché pour <strong>{selectedStore.name}</strong>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -154,7 +186,7 @@ export const ProductDetailPage: React.FC = () => {
             {product.description}
           </div>
 
-          {/* Product Specifications Table matching design board */}
+          {/* Product Specifications Table */}
           <div className="pt-3 border-t border-gray-100">
             <h3 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5">
               Caractéristiques
@@ -200,7 +232,7 @@ export const ProductDetailPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleShare}
-                className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                 title="Partager ce produit"
               >
                 <Share2 className="w-4 h-4" />
@@ -214,10 +246,10 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Store Availability Card with Explicit Demonstration Labeling */}
-        <div className="lg:col-span-3 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+        {/* 3. Store Availability Card with Structured Local Inventory */}
+        <div className="lg:col-span-3 bg-white p-5 rounded-3xl border border-gray-200 shadow-xs space-y-4 text-left">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-[#E30613] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-red-50 text-[#E30613] flex items-center justify-center shrink-0">
               <MapPin className="w-4 h-4" />
             </div>
             <div>
@@ -230,22 +262,59 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <p className="text-xs text-gray-500">
-            Simulez la vérification de stock dans le réseau de magasins AZIZA de votre région.
-          </p>
+          {/* Current Selected Store Status Spotlight */}
+          {selectedStore ? (
+            <div className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-700">
+                <span className="truncate">{selectedStore.name}</span>
+                <button
+                  type="button"
+                  onClick={openStoreSelector}
+                  className="text-[11px] text-[#E30613] hover:underline shrink-0 font-semibold cursor-pointer"
+                >
+                  Changer
+                </button>
+              </div>
 
-          {/* City Selection Dropdown */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-gray-700">Sélectionner votre ville</label>
+              {isAvailableInSelectedStore ? (
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-xl">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Disponible dans ce magasin</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 text-xs font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1.5 rounded-xl">
+                  <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Actuellement indisponible dans ce magasin</span>
+                </div>
+              )}
+              <div className="text-[10px] text-gray-400">
+                {selectedStore.address}
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 rounded-2xl bg-red-50/50 border border-red-200/80 text-center space-y-2">
+              <p className="text-xs text-gray-600">
+                Aucun magasin sélectionné. Choisissez votre magasin pour vérifier la disponibilité en rayon.
+              </p>
+              <button
+                type="button"
+                onClick={openStoreSelector}
+                className="w-full py-2 bg-[#E30613] hover:bg-[#c20510] text-white text-xs font-bold rounded-xl transition-all shadow-xs cursor-pointer"
+              >
+                Choisir mon magasin
+              </button>
+            </div>
+          )}
+
+          {/* City Selection Dropdown to explore other stores */}
+          <div className="pt-2 border-t border-gray-100 space-y-1.5">
+            <label className="text-[11px] font-bold text-gray-700">Explorer les magasins par ville</label>
             <select
               value={selectedCity}
-              onChange={(e) => {
-                setSelectedCity(e.target.value);
-                setHasCheckedAvailability(true);
-              }}
-              className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 focus:outline-hidden focus:border-[#E30613]"
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold text-gray-800 focus:outline-hidden focus:border-[#E30613] cursor-pointer"
             >
-              <option value="Tunis">Tunis (Grand Tunis)</option>
+              <option value="Tunis">Tunis</option>
               <option value="Ariana">Ariana</option>
               <option value="Sousse">Sousse</option>
               <option value="Sfax">Sfax</option>
@@ -257,75 +326,70 @@ export const ProductDetailPage: React.FC = () => {
             </select>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setHasCheckedAvailability(true)}
-            className="w-full py-2.5 bg-[#E30613] hover:bg-[#C0040F] text-white font-bold text-xs rounded-xl shadow-xs transition-colors"
-          >
-            Vérifier la disponibilité (Simulé)
-          </button>
+          {/* City Stores Availability List */}
+          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+              Magasins à {selectedCity} ({cityStores.length}) :
+            </div>
+            {cityStores.length > 0 ? (
+              cityStores.map((store: Store) => {
+                const storeRecord = getProductStoreData(product.id, store.id);
+                const isAvail = storeRecord !== null ? storeRecord.isAvailable : true;
+                const isSelected = selectedStore?.id === store.id;
 
-          {/* Store Availability Results List */}
-          {hasCheckedAvailability && (
-            <div className="pt-2 border-t border-gray-100 space-y-2">
-              <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex items-center justify-between">
-                <span>Magasins à {selectedCity} :</span>
-                <span className="text-[10px] text-amber-600 font-semibold">Exemple simulé</span>
-              </div>
-              {cityStores.length > 0 ? (
-                cityStores.map((store: Store) => (
+                return (
                   <div
                     key={store.id}
-                    className="p-2.5 rounded-xl bg-gray-50/80 border border-gray-200 flex items-start justify-between gap-2"
+                    onClick={() => selectStore(store.id)}
+                    className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 text-xs ${
+                      isSelected
+                        ? 'bg-red-50/60 border-[#E30613] ring-1 ring-[#E30613]'
+                        : 'bg-gray-50/70 hover:bg-gray-100 border-gray-200'
+                    }`}
                   >
-                    <div>
-                      <div className="font-bold text-xs text-gray-900">{store.name}</div>
-                      <div className="text-[10px] text-gray-400 mt-0.5">{store.address}</div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-gray-900 truncate">
+                        {store.name}
+                      </div>
+                      <div className="text-[10px] text-gray-400 truncate">
+                        {store.address}
+                      </div>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md flex-shrink-0">
-                      <Check className="w-3 h-3" /> En stock
-                    </span>
+
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      {isAvail ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span>Dispo</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">
+                          <XCircle className="w-3 h-3 text-rose-600" />
+                          <span>Épuisé</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                ))
-              ) : (
-                <div className="p-3 text-center text-xs text-gray-500 bg-gray-50 rounded-xl">
-                  Plusieurs magasins AZIZA disponibles dans le gouvernorat.
-                </div>
-              )}
+                );
+              })
+            ) : (
+              <p className="text-xs text-gray-400 py-2">Aucun magasin trouvé dans cette ville.</p>
+            )}
+          </div>
 
-              <div className="p-2 bg-amber-50/70 rounded-xl text-[10px] text-amber-800 flex items-start gap-1.5 border border-amber-200/50 mt-1">
-                <Info className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <span>
-                  * Ce prototype ne se connecte à aucun système ERP centralisé : les stocks réels peuvent varier en rayon.
-                </span>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-2">
-            <Link
-              to="/magasins"
-              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#E30613]" />
-              <span>Voir la carte complète</span>
-            </Link>
+          <div className="text-[10px] text-gray-400 border-t border-gray-100 pt-2">
+            {INVENTORY_DISCLAIMER}
           </div>
         </div>
       </div>
 
-      {/* 3. Similar Products Section */}
+      {/* 4. Similar Products Carousel/Grid */}
       {similarProducts.length > 0 && (
-        <section className="pt-8 border-t border-gray-200">
+        <section className="pt-8 border-t border-gray-200/80">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-black text-gray-900 tracking-tight">
-                Produits similaires
-              </h2>
-              <p className="text-xs text-gray-500">
-                D&apos;autres articles du rayon {category?.name || 'Épicerie'} à découvrir
-              </p>
-            </div>
+            <h2 className="text-lg sm:text-xl font-black text-gray-900 tracking-tight">
+              Produits similaires dans le même rayon
+            </h2>
             <Link
               to={`/produits?cat=${product.category}`}
               className="text-xs font-bold text-[#E30613] hover:underline"
@@ -333,14 +397,16 @@ export const ProductDetailPage: React.FC = () => {
               Voir tout le rayon &rarr;
             </Link>
           </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {similarProducts.map((p: Product) => (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {similarProducts.map((p) => (
               <ProductCard key={p.id} product={p} compact />
             ))}
           </div>
         </section>
       )}
+
+      {/* Store Selector Modal */}
+      <StoreSelectorModal isOpen={isStoreSelectorOpen} onClose={closeStoreSelector} />
     </div>
   );
 };

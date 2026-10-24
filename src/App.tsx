@@ -1,6 +1,7 @@
 import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
+import { StoreProvider } from './context/StoreContext';
 import { Header } from './components/layout/Header';
 import { Footer } from './components/layout/Footer';
 
@@ -74,8 +75,10 @@ export const App: React.FC = () => {
   return (
     <LanguageProvider>
       <BrowserRouter>
-        <ScrollToTop />
-        <AppLayout />
+        <StoreProvider>
+          <ScrollToTop />
+          <AppLayout />
+        </StoreProvider>
       </BrowserRouter>
     </LanguageProvider>
   );

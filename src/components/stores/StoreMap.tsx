@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { Phone, Clock, Navigation, Map, Compass } from 'lucide-react';
+import { Phone, Clock, Navigation, Map, Compass, ShoppingBag } from 'lucide-react';
+import { useSelectedStore } from '../../context/StoreContext';
 import type { Store } from '../../types';
 
 interface StoreMapProps {
@@ -85,6 +87,8 @@ const MapResizer: React.FC = () => {
 };
 
 export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSelectStore }) => {
+  const navigate = useNavigate();
+  const { selectStore } = useSelectedStore();
   const [mapMode, setMapMode] = useState<'tiles' | 'stylized'>('tiles');
   const defaultCenter: [number, number] = [36.8065, 10.1815]; // Tunis
   const defaultZoom = 8;
@@ -162,15 +166,26 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
                       </div>
                     </div>
 
-                    <div className="mt-3">
+                    <div className="mt-2.5 space-y-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          selectStore(store.id);
+                          navigate(`/produits?magasin=${encodeURIComponent(store.id)}`);
+                        }}
+                        className="w-full py-1.5 bg-[#E30613] text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 hover:bg-[#C0040F] transition-colors cursor-pointer"
+                      >
+                        <ShoppingBag className="w-3 h-3" />
+                        <span>Voir les produits de ce magasin</span>
+                      </button>
                       <a
                         href={`https://maps.google.com/?q=${store.lat},${store.lng}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="w-full py-1.5 bg-[#E30613] text-white text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 hover:bg-[#C0040F] transition-colors"
+                        className="w-full py-1 bg-gray-100 text-gray-700 text-[11px] font-bold rounded-lg flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
                       >
                         <Navigation className="w-3 h-3" />
-                        <span>Ouvrir dans Google Maps</span>
+                        <span>Itinéraire Google Maps</span>
                       </a>
                     </div>
                   </div>
@@ -193,12 +208,25 @@ export const StoreMap: React.FC<StoreMapProps> = ({ stores, selectedStore, onSel
               Sélectionnez un magasin dans la liste pour voir sa fiche d&apos;informations ou basculez en mode <strong>Carte OpenStreetMap</strong> pour zoomer rue par rue.
             </p>
             {selectedStore && (
-              <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-left">
-                <div className="font-black text-sm text-[#E30613]">{selectedStore.name}</div>
-                <div className="text-xs text-gray-600 mt-0.5">{selectedStore.address}</div>
-                <div className="text-[11px] font-bold text-gray-500 mt-1">
-                  Gouvernorat : {selectedStore.governorate} • {selectedStore.openingHours}
+              <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-left space-y-2">
+                <div>
+                  <div className="font-black text-sm text-[#E30613]">{selectedStore.name}</div>
+                  <div className="text-xs text-gray-600 mt-0.5">{selectedStore.address}</div>
+                  <div className="text-[11px] font-bold text-gray-500 mt-1">
+                    Gouvernorat : {selectedStore.governorate} • {selectedStore.openingHours}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    selectStore(selectedStore.id);
+                    navigate(`/produits?magasin=${encodeURIComponent(selectedStore.id)}`);
+                  }}
+                  className="w-full py-1.5 bg-[#E30613] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 hover:bg-[#C0040F] transition-colors cursor-pointer"
+                >
+                  <ShoppingBag className="w-3.5 h-3.5" />
+                  <span>Voir les produits de ce magasin</span>
+                </button>
               </div>
             )}
             <button

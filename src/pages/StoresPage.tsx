@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { STORES } from '../data/stores';
 import { StoreCard } from '../components/stores/StoreCard';
 import { StoreMap } from '../components/stores/StoreMap';
-import { Search, MapPin, List, Map as MapIcon, X, Info } from 'lucide-react';
+import { Search, MapPin, List, Map as MapIcon, X, Info, Store as StoreIcon, ShoppingBag } from 'lucide-react';
+import { useSelectedStore } from '../context/StoreContext';
 import type { Store } from '../types';
 
 export const StoresPage: React.FC = () => {
+  const { selectedStore: globalSelectedStore } = useSelectedStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGovernorate, setSelectedGovernorate] = useState<string>('Tous');
-  const [selectedStore, setSelectedStore] = useState<Store | null>(STORES[0]);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(globalSelectedStore || STORES[0]);
   const [mobileView, setMobileView] = useState<'both' | 'map' | 'list'>('list');
 
   // Governorates list
@@ -82,6 +85,32 @@ export const StoresPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Active Selected Store Banner */}
+      {globalSelectedStore && (
+        <div className="bg-red-50/70 border border-red-200/90 rounded-2xl p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-[#E30613] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <StoreIcon className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                Votre magasin actuel : <span className="text-[#E30613] font-black">{globalSelectedStore.name}</span> ({globalSelectedStore.city})
+              </div>
+              <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                Les disponibilités en rayon et promotions sur le catalogue sont personnalisées pour ce magasin.
+              </p>
+            </div>
+          </div>
+          <Link
+            to={`/produits?magasin=${encodeURIComponent(globalSelectedStore.id)}`}
+            className="px-4 py-2 bg-[#E30613] hover:bg-[#c20510] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-1.5 shrink-0 active:scale-95"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            <span>Voir ses produits</span>
+          </Link>
+        </div>
+      )}
 
       {/* Demonstration Notice */}
       <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 flex items-center gap-2">

@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { X, Layers, BookOpen, MapPin, Info, Phone, Globe, ChevronRight } from 'lucide-react';
 import { Logo } from '../common/Logo';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSelectedStore } from '../../context/StoreContext';
 import { MAIN_NAV_ITEMS } from '../../data/navigation';
 
 interface MobileMenuProps {
@@ -12,6 +13,7 @@ interface MobileMenuProps {
 
 export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const { language, setLanguage, isArabic } = useLanguage();
+  const { selectedStore, openStoreSelector } = useSelectedStore();
 
   if (!isOpen) return null;
 
@@ -53,6 +55,35 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
               className="p-2 text-gray-500 hover:text-gray-800 rounded-lg hover:bg-gray-100"
             >
               <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Mobile Store Selector Bar */}
+          <div className="p-3 border-b border-gray-100 bg-gray-50/70">
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                openStoreSelector();
+              }}
+              className="w-full p-2.5 bg-white hover:bg-gray-50 border border-gray-200 rounded-xl text-left flex items-center justify-between gap-2 shadow-2xs"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-red-50 text-[#E30613] flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[10px] text-gray-400 font-bold uppercase">
+                    {isArabic ? 'مغازتي' : 'Mon magasin'}
+                  </div>
+                  <div className="text-xs font-bold text-gray-900 truncate">
+                    {selectedStore ? `${selectedStore.name} (${selectedStore.city})` : 'Choisir un magasin'}
+                  </div>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold text-[#E30613] shrink-0">
+                {selectedStore ? 'Changer' : 'Choisir'}
+              </span>
             </button>
           </div>
 

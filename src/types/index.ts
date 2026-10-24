@@ -84,10 +84,21 @@ export interface Store {
   hasAirConditioning?: boolean;
 }
 
+export interface StoreInventoryRecord {
+  productId: string;
+  storeId: string;
+  isAvailable: boolean;
+  storePrice?: number;
+  storeOldPrice?: number;
+  storeDiscountPercent?: number;
+  isStorePromo?: boolean;
+}
+
 export interface FilterOptions {
   searchQuery: string;
   category: string;
   brand: string;
   onlyPromos: boolean;
+  onlyAvailableInStore?: boolean;
   sortBy: 'price-asc' | 'price-desc' | 'popular' | 'discount';
 }

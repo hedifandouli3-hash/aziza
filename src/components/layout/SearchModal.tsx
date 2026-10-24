@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, X, Tag, ArrowRight } from 'lucide-react';
+import { Search, X, Tag, ArrowRight, CheckCircle2, XCircle } from 'lucide-react';
 import { PRODUCTS } from '../../data/products';
 import { ImageWithFallback } from '../common/ImageWithFallback';
+import { useSelectedStore } from '../../context/StoreContext';
+import { getProductStoreData } from '../../data/inventory';
 import type { Product } from '../../types';
 
 interface SearchModalProps {
@@ -14,6 +16,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { selectedStore, selectedStoreId } = useSelectedStore();
 
   useEffect(() => {
     if (isOpen) {
@@ -43,7 +46,8 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   const handleSearchAll = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate(`/produits?q=${encodeURIComponent(query)}`);
+      const storeParam = selectedStoreId ? `&magasin=${encodeURIComponent(selectedStoreId)}` : '';
+      navigate(`/produits?q=${encodeURIComponent(query)}${storeParam}`);
       onClose();
     }
   };
@@ -117,35 +121,52 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                   Tout voir <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
-              {results.slice(0, 6).map((product) => (
-                <div
-                  key={product.id}
-                  onClick={() => handleSelect(product.id)}
-                  className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100"
-                >
-                  <ImageWithFallback
-                    src={product.image}
-                    alt={product.name}
-                    className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-gray-100"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-bold text-sm text-gray-900 truncate">{product.name}</div>
-                    <div className="text-xs text-gray-500">
-                      {product.brand} • {product.packageSize}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-bold text-[#E30613]">
-                      {product.price.toFixed(3)} DT
-                    </div>
-                    {product.oldPrice && (
-                      <div className="text-xs text-gray-400 line-through">
-                        {product.oldPrice.toFixed(3)} DT
+              {results.slice(0, 6).map((product) => {
+                const storeData = selectedStore ? getProductStoreData(product.id, selectedStore.id) : null;
+                const isAvailable = storeData !== null ? storeData.isAvailable : true;
+                const effectivePrice = storeData?.storePrice ?? product.price;
+
+                return (
+                  <div
+                    key={product.id}
+                    onClick={() => handleSelect(product.id)}
+                    className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors border border-transparent hover:border-gray-100"
+                  >
+                    <ImageWithFallback
+                      src={product.image}
+                      alt={product.name}
+                      className="w-12 h-12 object-contain bg-white rounded-lg p-1 border border-gray-100"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-sm text-gray-900 truncate">{product.name}</div>
+                      <div className="text-xs text-gray-500 flex items-center gap-1.5 flex-wrap">
+                        <span>{product.brand} • {product.packageSize}</span>
+                        {selectedStore && (
+                          isAvailable ? (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.2 rounded">
+                              <CheckCircle2 className="w-2.5 h-2.5" /> Dispo
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] text-rose-700 font-bold bg-rose-50 px-1.5 py-0.2 rounded">
+                              <XCircle className="w-2.5 h-2.5" /> Épuisé
+                            </span>
+                          )
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold text-[#E30613]">
+                        {effectivePrice.toFixed(3)} DT
+                      </div>
+                      {product.oldPrice && (
+                        <div className="text-xs text-gray-400 line-through">
+                          {product.oldPrice.toFixed(3)} DT
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="p-8 text-center text-gray-500">

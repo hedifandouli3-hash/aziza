@@ -3,17 +3,50 @@ import { HeroBanner } from '../components/home/HeroBanner';
 import { CategoryGrid } from '../components/home/CategoryGrid';
 import { FeaturedOffers } from '../components/home/FeaturedOffers';
 import { PromoCards } from '../components/home/PromoCards';
-import { ShieldCheck, Truck, Sparkles, HeartHandshake, Info } from 'lucide-react';
+import { ShieldCheck, Truck, Sparkles, HeartHandshake, Info, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { useSelectedStore } from '../context/StoreContext';
 
 export const HomePage: React.FC = () => {
   const { isArabic } = useLanguage();
+  const { selectedStore, openStoreSelector } = useSelectedStore();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
       {/* 1. Hero Promotional Banner */}
       <HeroBanner />
+
+      {/* Subtle Store Location Indicator (Visible when store is selected) */}
+      {selectedStore && (
+        <div className="flex items-center justify-between bg-white border border-gray-200/90 rounded-2xl px-3.5 sm:px-4 py-2 text-xs shadow-2xs text-left animate-in fade-in">
+          <div className="flex items-center gap-2 min-w-0">
+            <MapPin className="w-4 h-4 text-[#E30613] shrink-0" />
+            <span className="text-gray-500 font-medium">Votre magasin :</span>
+            <span className="font-bold text-gray-900 truncate">
+              {selectedStore.name} ({selectedStore.city})
+            </span>
+            <span className="hidden md:inline-block text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.2 rounded-full border border-emerald-200">
+              Disponibilités locales actives
+            </span>
+          </div>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              type="button"
+              onClick={openStoreSelector}
+              className="text-[#E30613] hover:underline font-bold text-xs cursor-pointer"
+            >
+              Changer
+            </button>
+            <Link
+              to={`/produits?magasin=${encodeURIComponent(selectedStore.id)}`}
+              className="text-gray-600 hover:text-[#E30613] font-bold text-xs hidden sm:inline"
+            >
+              Voir ses produits &rarr;
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* 2. Supermarket Grocery Categories */}
       <CategoryGrid />

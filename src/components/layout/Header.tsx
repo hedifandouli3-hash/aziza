@@ -12,7 +12,9 @@ import {
 import { Logo } from '../common/Logo';
 import { MobileMenu } from './MobileMenu';
 import { SearchModal } from './SearchModal';
+import { StoreSelectorModal } from '../stores/StoreSelectorModal';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSelectedStore } from '../../context/StoreContext';
 import { MAIN_NAV_ITEMS } from '../../data/navigation';
 
 export const Header: React.FC = () => {
@@ -22,6 +24,7 @@ export const Header: React.FC = () => {
   const [searchInput, setSearchInput] = useState('');
 
   const { language, setLanguage, isArabic } = useLanguage();
+  const { selectedStore, isStoreSelectorOpen, openStoreSelector, closeStoreSelector } = useSelectedStore();
   const navigate = useNavigate();
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -102,12 +105,35 @@ export const Header: React.FC = () => {
               <Search className="w-5 h-5" />
             </button>
 
+            {/* Store Indicator & Selector Button */}
+            {selectedStore ? (
+              <button
+                type="button"
+                onClick={openStoreSelector}
+                className="flex items-center gap-1.5 text-xs font-bold text-[#E30613] bg-red-50/90 hover:bg-red-100 border border-red-200/90 px-2.5 py-1.5 rounded-xl transition-all cursor-pointer max-w-[130px] sm:max-w-[190px] truncate shadow-2xs"
+                title={`Magasin sélectionné : ${selectedStore.name} (${selectedStore.city}) - Cliquer pour changer`}
+              >
+                <MapPin className="w-3.5 h-3.5 shrink-0 text-[#E30613]" />
+                <span className="truncate">{selectedStore.name}</span>
+                <ChevronDown className="w-3 h-3 text-red-400 shrink-0" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={openStoreSelector}
+                className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-[#E30613] transition-colors px-2.5 py-1.5 rounded-xl hover:bg-red-50/60 cursor-pointer"
+                title="Choisir votre magasin AZIZA"
+              >
+                <MapPin className="w-3.5 h-3.5 text-[#E30613]" />
+                <span>{isArabic ? 'اختر مغازتك' : 'Mon magasin'}</span>
+              </button>
+            )}
+
             {/* Nos magasins link */}
             <Link
               to="/magasins"
-              className="hidden sm:flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-[#E30613] transition-colors px-3 py-2 rounded-xl hover:bg-red-50/60"
+              className="hidden md:flex items-center gap-1.5 text-xs font-bold text-gray-700 hover:text-[#E30613] transition-colors px-2.5 py-2 rounded-xl hover:bg-red-50/60"
             >
-              <MapPin className="w-4 h-4 text-[#E30613]" />
               <span>{isArabic ? 'مغازاتنا' : 'Nos magasins'}</span>
             </Link>
 
@@ -210,6 +236,9 @@ export const Header: React.FC = () => {
 
       {/* Global Interactive Search Modal */}
       <SearchModal isOpen={searchModalOpen} onClose={() => setSearchModalOpen(false)} />
+
+      {/* Global Store Selector Modal */}
+      <StoreSelectorModal isOpen={isStoreSelectorOpen} onClose={closeStoreSelector} />
     </>
   );
 };
