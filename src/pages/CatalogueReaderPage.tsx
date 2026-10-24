@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { CATALOGUES } from '../data/catalogues';
 import { CatalogueViewer } from '../components/catalogue/CatalogueViewer';
-import { ArrowLeft, BookOpen, AlertCircle, Calendar } from 'lucide-react';
+import { ArrowLeft, AlertCircle, Calendar } from 'lucide-react';
 import { Logo } from '../components/common/Logo';
 import { Badge } from '../components/common/Badge';
 import type { Catalogue } from '../types';
@@ -48,56 +48,32 @@ export const CatalogueReaderPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
+    <div className="h-screen h-[100dvh] max-h-[100dvh] flex flex-col bg-[#0F172A] overflow-hidden">
       {/* =======================================================================
-          COMPACT DEDICATED HEADER FOR MAXIMAL READING VIEWPORT
+          COMPACT DEDICATED HEADER (H-11/H-12 SHRINK-0 FOR MAXIMUM READING VIEWPORT)
           ======================================================================= */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200/90 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
-          {/* Left: Brand Logo & Back to Catalogues */}
-          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <Link to="/" className="shrink-0" title="Accueil AZIZA">
-              <Logo />
-            </Link>
+      <header className="h-11 sm:h-12 shrink-0 bg-white border-b border-gray-200/90 shadow-2xs z-40 px-3 sm:px-6 flex items-center justify-between gap-3">
+        {/* Left: Brand Logo & Back to Catalogues */}
+        <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+          <Link to="/" className="shrink-0" title="Accueil AZIZA">
+            <Logo />
+          </Link>
 
-            <div className="h-6 w-[1px] bg-gray-200 hidden sm:block" />
+          <div className="h-5 w-[1px] bg-gray-200 hidden sm:block" />
 
-            <Link
-              to="/catalogues"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#E30613] px-2.5 py-1.5 rounded-lg hover:bg-red-50/70 transition-all shrink-0"
-              title="Retourner à la liste des catalogues"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#E30613]" />
-              <span className="hidden sm:inline">Retour aux catalogues</span>
-              <span className="sm:hidden">Catalogues</span>
-            </Link>
-          </div>
-
-          {/* Center / Right: Catalogue Title & Validity */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="text-right hidden md:block">
-              <div className="text-xs font-black text-gray-900 truncate">
-                {catalogue.title}
-              </div>
-              <div className="text-[10px] text-gray-400 flex items-center justify-end gap-1">
-                <Calendar className="w-3 h-3 text-gray-400" />
-                <span>{catalogue.period}</span>
-              </div>
-            </div>
-
-            <Badge type={getBadgeType(catalogue.status)}>
-              {catalogue.statusLabel}
-            </Badge>
-          </div>
+          <Link
+            to="/catalogues"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-600 hover:text-[#E30613] px-2 py-1 rounded-lg hover:bg-red-50/70 transition-all shrink-0"
+            title="Retourner à la liste des catalogues"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#E30613]" />
+            <span className="hidden sm:inline">Retour aux catalogues</span>
+            <span className="sm:hidden">Catalogues</span>
+          </Link>
         </div>
-      </header>
 
-      {/* =======================================================================
-          MAIN VIEWER AREA
-          ======================================================================= */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-2 sm:px-4 lg:px-6 py-3 sm:py-4 flex flex-col">
-        {/* Subtle Breadcrumb Navigation */}
-        <nav aria-label="Fil d'Ariane" className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-2.5 px-1">
+        {/* Center: Subtle Breadcrumb Navigation */}
+        <nav aria-label="Fil d'Ariane" className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 min-w-0">
           <Link to="/" className="hover:text-[#E30613] transition-colors">
             Accueil
           </Link>
@@ -106,28 +82,32 @@ export const CatalogueReaderPage: React.FC = () => {
             Catalogues
           </Link>
           <span>/</span>
-          <span className="text-gray-700 font-bold truncate max-w-xs">{catalogue.title}</span>
+          <span className="text-gray-800 font-bold truncate max-w-xs">{catalogue.title}</span>
         </nav>
 
-        {/* 3D Paper Flip Catalogue Viewer */}
-        <div className="flex-1 flex flex-col">
-          <CatalogueViewer catalogue={catalogue} />
-        </div>
+        {/* Right: Catalogue Title & Validity */}
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="text-right hidden sm:block">
+            <div className="text-xs font-black text-gray-900 truncate max-w-[200px]">
+              {catalogue.title}
+            </div>
+            <div className="text-[10px] text-gray-400 flex items-center justify-end gap-1">
+              <Calendar className="w-3 h-3 text-gray-400" />
+              <span>{catalogue.period}</span>
+            </div>
+          </div>
 
-        {/* Discreet Reader Guidance Note */}
-        <div className="mt-3 py-2 px-3 bg-white rounded-xl border border-gray-200/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <BookOpen className="w-3.5 h-3.5 text-[#E30613]" />
-            <span>
-              <strong>Astuce :</strong> Tournez les pages en cliquant sur les côtés, en tirant les coins ou avec les flèches du clavier.
-            </span>
-          </div>
-          <div>
-            <Link to="/catalogues" className="text-[#E30613] font-bold hover:underline">
-              Découvrir les autres catalogues AZIZA &rarr;
-            </Link>
-          </div>
+          <Badge type={getBadgeType(catalogue.status)}>
+            {catalogue.statusLabel}
+          </Badge>
         </div>
+      </header>
+
+      {/* =======================================================================
+          MAIN VIEWER AREA - FILLS ALL REMAINING VIEWPORT HEIGHT EXACTLY
+          ======================================================================= */}
+      <main className="flex-1 min-h-0 w-full flex flex-col overflow-hidden p-1 sm:p-2">
+        <CatalogueViewer catalogue={catalogue} />
       </main>
     </div>
   );

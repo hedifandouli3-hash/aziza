@@ -52,3 +52,30 @@
     color: black !important;
   }
 }
+
+/* PageFlip reader canvas styling for 100dvh viewport fitting */
+.catalogue-flipbook-root {
+  position: relative;
+  box-sizing: border-box;
+}
+
+.catalogue-flipbook-root .stf__parent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.catalogue-flipbook-root .stf__wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.catalogue-flipbook-root .stf__block {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+

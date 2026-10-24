@@ -35,12 +35,166 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   const [copiedToast, setCopiedToast] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const bookRootRef = useRef<HTMLDivElement>(null);
   const pageFlipInstanceRef = useRef<PageFlip | null>(null);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
+  const currentPageIndexRef = useRef<number>(0);
 
   const totalPages = catalogue.pageCount || CATALOGUE_PAGES.length;
   const activePages = CATALOGUE_PAGES.slice(0, totalPages);
+
+  // Keep currentPageIndexRef synced
+  useEffect(() => {
+    currentPageIndexRef.current = currentPageIndex;
+  }, [currentPageIndex]);
+
+  // Compute exact spread dimensions constrained by available stage viewport
+  const computeDimensions = useCallback(() => {
+    const stage = stageRef.current;
+    const stageW = stage?.clientWidth ?? (typeof window !== 'undefined' ? window.innerWidth : 1200);
+    const stageH = stage?.clientHeight ?? (typeof window !== 'undefined' ? window.innerHeight - 150 : 700);
+
+    if (stageW <= 0 || stageH <= 0) {
+      return {
+        width: 840,
+        height: 594,
+        pageWidth: 420,
+        isPortrait: false
+      };
+    }
+
+    // Reserve clearance for navigation buttons and margins
+    const horizontalMargin = stageW < 640 ? 16 : 80;
+    const verticalMargin = stageW < 640 ? 12 : 24;
+
+    const availW = Math.max(260, stageW - horizontalMargin);
+    const availH = Math.max(260, stageH - verticalMargin);
+
+    // Single-page portrait condition (mobile or very narrow window)
+    const shouldUsePortrait = stageW < 768 || availW / availH < 1.05;
+
+    if (shouldUsePortrait) {
+      // Single page DIN A4 aspect ratio: ~0.7071 : 1 (width : height)
+      const pageRatio = 0.7071;
+      let w: number;
+      let h: number;
+
+      if (availH * pageRatio <= availW) {
+        // Height-constrained
+        h = Math.floor(availH);
+        w = Math.floor(h * pageRatio);
+      } else {
+        // Width-constrained
+        w = Math.floor(availW);
+        h = Math.floor(w / pageRatio);
+      }
+
+      return {
+        width: w,
+        height: h,
+        pageWidth: w,
+        isPortrait: true
+      };
+    } else {
+      // Two-page spread DIN A4 aspect ratio: ~1.4142 : 1 (spreadWidth : height)
+      const spreadRatio = 1.4142;
+      let spreadW: number;
+      let spreadH: number;
+
+      if (availH * spreadRatio <= availW) {
+        // Height-constrained: height binds first
+        spreadH = Math.floor(availH);
+        spreadW = Math.floor(spreadH * spreadRatio);
+      } else {
+        // Width-constrained: width binds first
+        spreadW = Math.floor(availW);
+        spreadH = Math.floor(spreadW / spreadRatio);
+      }
+
+      // Ensure even width so each page has an integer pixel width
+      if (spreadW % 2 !== 0) spreadW -= 1;
+      const pageW = Math.floor(spreadW / 2);
+
+      return {
+        width: spreadW,
+        height: spreadH,
+        pageWidth: pageW,
+        isPortrait: false
+      };
+    }
+  }, []);
+
+  const [spreadSize, setSpreadSize] = useState(() => {
+    const w = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const h = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const isMobile = w < 768;
+    if (isMobile) {
+      const pageRatio = 0.7071;
+      const availH = Math.max(300, h - 160);
+      const availW = Math.max(260, w - 24);
+      const height = Math.floor(Math.min(availH, availW / pageRatio));
+      const width = Math.floor(height * pageRatio);
+      return { width, height, pageWidth: width, isPortrait: true };
+    } else {
+      const spreadRatio = 1.4142;
+      const availH = Math.max(350, h - 160);
+      const availW = Math.max(500, w - 90);
+      let spreadW: number;
+      let spreadH: number;
+      if (availH * spreadRatio <= availW) {
+        spreadH = Math.floor(availH);
+        spreadW = Math.floor(spreadH * spreadRatio);
+      } else {
+        spreadW = Math.floor(availW);
+        spreadH = Math.floor(spreadW / spreadRatio);
+      }
+      if (spreadW % 2 !== 0) spreadW -= 1;
+      return { width: spreadW, height: spreadH, pageWidth: Math.floor(spreadW / 2), isPortrait: false };
+    }
+  });
+  const [renderKey, setRenderKey] = useState(0);
+
+  // ResizeObserver on the reading stage to recalculate dimensions on screen change
+  useEffect(() => {
+    let timeoutId: number | null = null;
+
+    const handleResize = () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => {
+        const next = computeDimensions();
+        setSpreadSize((prev) => {
+          if (
+            Math.abs(prev.width - next.width) > 6 ||
+            Math.abs(prev.height - next.height) > 6 ||
+            prev.isPortrait !== next.isPortrait
+          ) {
+            setRenderKey((k) => k + 1);
+            return next;
+          }
+          return prev;
+        });
+      }, 100);
+    };
+
+    const stage = stageRef.current;
+    let observer: ResizeObserver | null = null;
+    if (stage && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(handleResize);
+      observer.observe(stage);
+    } else {
+      window.addEventListener('resize', handleResize);
+    }
+
+    // Also listen to window resize for orientation change
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      if (timeoutId) window.clearTimeout(timeoutId);
+      if (observer) observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [computeDimensions]);
 
   // Initialize PageFlip instance
   useEffect(() => {
@@ -48,14 +202,11 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
 
     let isMounted = true;
     setIsReady(false);
-    setCurrentPageIndex(0);
 
-    // Short timeout to guarantee DOM elements are rendered
     const timer = setTimeout(() => {
       if (!bookRootRef.current || !isMounted) return;
 
       try {
-        // Destroy existing instance if any
         if (pageFlipInstanceRef.current) {
           try {
             pageFlipInstanceRef.current.destroy();
@@ -66,22 +217,24 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
         }
 
         const pf = new PageFlip(bookRootRef.current, {
-          width: 440,
-          height: 620,
-          size: 'stretch',
-          minWidth: 280,
-          maxWidth: 580,
-          minHeight: 400,
-          maxHeight: 820,
-          maxShadowOpacity: 0.6,
+          width: spreadSize.pageWidth,
+          height: spreadSize.height,
+          size: 'fixed',
+          autoSize: false,
+          minWidth: 0,
+          minHeight: 0,
+          maxWidth: 3000,
+          maxHeight: 3000,
+          startPage: currentPageIndexRef.current,
           showCover: false, // Start with page 1 & 2 open side by side on desktop
           mobileScrollSupport: false,
           usePortrait: true, // Automatically single-page portrait on mobile
-          flippingTime: 750,
+          flippingTime: 700,
           useMouseEvents: true,
           clickEventForward: true,
           showPageCorners: true,
-          swipeDistance: 25
+          swipeDistance: 25,
+          maxShadowOpacity: 0.6
         });
 
         const pages = bookRootRef.current.querySelectorAll('.flyer-page-item');
@@ -92,6 +245,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
         pf.on('flip', (e: { data: number }) => {
           if (isMounted) {
             setCurrentPageIndex(e.data);
+            currentPageIndexRef.current = e.data;
           }
         });
 
@@ -105,6 +259,13 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           if (isMounted) {
             setIsReady(true);
             setIsPortrait(pf.getOrientation() === 'portrait');
+            if (currentPageIndexRef.current > 0) {
+              try {
+                pf.turnToPage(currentPageIndexRef.current);
+              } catch {
+                // ignore
+              }
+            }
           }
         });
 
@@ -115,14 +276,14 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           if (isMounted) {
             setIsReady(true);
           }
-        }, 150);
+        }, 120);
       } catch (err) {
         console.error('PageFlip initialization error:', err);
         if (isMounted) {
           setIsReady(true);
         }
       }
-    }, 60);
+    }, 50);
 
     return () => {
       isMounted = false;
@@ -136,7 +297,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
         pageFlipInstanceRef.current = null;
       }
     };
-  }, [catalogue.id]);
+  }, [catalogue.id, renderKey, spreadSize.pageWidth, spreadSize.height]);
 
   // Turn to Next Page
   const handleNext = useCallback(() => {
@@ -262,21 +423,21 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   return (
     <div
       ref={containerRef}
-      className={`flex flex-col bg-[#0F172A] text-white select-none transition-all duration-300 ${
-        isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen' : 'rounded-3xl shadow-2xl overflow-hidden'
+      className={`h-full w-full flex flex-col bg-[#0F172A] text-white select-none transition-all duration-300 overflow-hidden ${
+        isFullscreen ? 'fixed inset-0 z-50 h-screen w-screen' : 'rounded-2xl shadow-xl'
       }`}
     >
       {/* =========================================================================
-          REFINED TOP TOOLBAR (AZIZA RED CHEVRONS & SLEEK CONTROLS)
+          REFINED TOP TOOLBAR (H-11/H-12 SHRINK-0: SLEEK CONTROLS & RED CHEVRONS)
           ========================================================================= */}
-      <div className="bg-[#0B1120] px-3 sm:px-6 py-2 sm:py-2.5 border-b border-gray-800 flex items-center justify-between gap-2 sm:gap-4 z-30">
+      <div className="h-11 sm:h-12 shrink-0 bg-[#0B1120] px-3 sm:px-5 border-b border-gray-800 flex items-center justify-between gap-2 sm:gap-4 z-30">
         {/* Left: Back & Title */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={() => navigate('/catalogues')}
             aria-label="Retourner aux catalogues"
-            className="flex items-center gap-1.5 text-xs font-bold text-gray-200 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-800/90 hover:bg-[#E30613] transition-all flex-shrink-0 cursor-pointer shadow-xs"
+            className="flex items-center gap-1.5 text-xs font-bold text-gray-200 hover:text-white px-2.5 py-1 rounded-lg bg-gray-800/90 hover:bg-[#E30613] transition-all flex-shrink-0 cursor-pointer shadow-xs"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Retour aux catalogues</span>
@@ -435,9 +596,12 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
       </div>
 
       {/* =========================================================================
-          MAIN READING STAGE (CLEAN LIGHT NEUTRAL BACKDROP & 3D PAGE-FLIP CANVAS)
+          MAIN READING STAGE (FITS EXACT AVAILABLE VIEWPORT HEIGHT)
           ========================================================================= */}
-      <div className="relative flex-1 bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden min-h-[500px] sm:min-h-[600px] md:min-h-[660px]">
+      <div
+        ref={stageRef}
+        className="relative flex-1 min-h-0 w-full bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] p-1 sm:p-2 md:p-3 flex items-center justify-center overflow-hidden"
+      >
         {/* Subtle loading spinner while page-flip binds DOM canvas */}
         {!isReady && (
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#F1F5F9]/80 backdrop-blur-xs">
@@ -464,17 +628,28 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             transformOrigin: 'center center',
             transition: 'transform 200ms ease'
           }}
-          className="w-full flex items-center justify-center select-none"
+          className="flex items-center justify-center select-none"
         >
           <div
             ref={bookRootRef}
-            className="catalogue-flipbook-root mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden bg-white"
+            key={renderKey}
+            style={{
+              width: `${spreadSize.width}px`,
+              height: `${spreadSize.height}px`,
+              maxWidth: `${spreadSize.width}px`,
+              maxHeight: `${spreadSize.height}px`
+            }}
+            className="catalogue-flipbook-root mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden bg-white shrink-0"
           >
             {activePages.map((page, index) => (
               <div
                 key={page.pageNumber}
                 className="flyer-page-item bg-[#FAF9F5] overflow-hidden"
                 data-density={index === 0 || index === totalPages - 1 ? 'hard' : 'soft'}
+                style={{
+                  width: `${spreadSize.pageWidth}px`,
+                  height: `${spreadSize.height}px`
+                }}
               >
                 <CatalogueFlyerPage
                   page={page}
@@ -501,12 +676,12 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
       </div>
 
       {/* =========================================================================
-          BOTTOM THUMBNAIL FILMSTRIP (PAGES 1 TO 16 DIRECT JUMP)
+          BOTTOM THUMBNAIL FILMSTRIP (H-14/H-16 SHRINK-0 COMPACT SPREAD SELECTOR)
           ========================================================================= */}
-      <div className="bg-[#0B1120] p-2 sm:p-2.5 border-t border-gray-800">
+      <div className="h-14 sm:h-16 shrink-0 bg-[#0B1120] px-2 py-1 border-t border-gray-800 flex items-center">
         <div
           ref={thumbnailScrollRef}
-          className="max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+          className="max-w-5xl mx-auto w-full flex items-center gap-1.5 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent py-0.5"
         >
           {activePages.map((pageData, index) => {
             const isActive = isPortrait
@@ -528,7 +703,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                 }`}
               >
                 <div
-                  className={`w-11 sm:w-14 aspect-[1/1.41] rounded-xs overflow-hidden bg-[#FAF9F5] border-2 transition-all relative shadow-sm flex flex-col justify-between ${
+                  className={`w-9 sm:w-11 aspect-[1/1.41] rounded-xs overflow-hidden bg-[#FAF9F5] border-2 transition-all relative shadow-2xs flex flex-col justify-between ${
                     isActive
                       ? 'border-[#E30613] ring-2 ring-[#E30613]/50'
                       : 'border-gray-700 group-hover:border-gray-400'
@@ -545,34 +720,31 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                   {/* Mini Content Area matching actual page artwork */}
                   <div className="flex-1 p-0.5 flex flex-col justify-between overflow-hidden">
                     {isCoverThumb ? (
-                      /* Cover miniature: hero products preview */
                       <div className="h-full flex flex-col justify-between">
-                        <div className="h-1 bg-amber-400/80 rounded-xs mb-0.5" />
+                        <div className="h-0.5 bg-amber-400/80 rounded-xs mb-0.5" />
                         <div className="grid grid-cols-2 gap-0.5 flex-1">
                           {pageData.products.slice(0, 2).map((p) => (
-                            <div key={p.id} className="bg-white rounded-[1px] p-0.5 flex items-center justify-center overflow-hidden">
+                            <div key={p.id} className="bg-white rounded-[1px] p-0.2 flex items-center justify-center overflow-hidden">
                               <img src={p.image} alt="" className="max-h-full max-w-full object-contain" />
                             </div>
                           ))}
                         </div>
-                        <div className="bg-[#E30613] text-white text-[4px] font-black text-center rounded-[0.5px] mt-0.5 leading-tight">
+                        <div className="bg-[#E30613] text-white text-[3.5px] font-black text-center rounded-[0.5px] mt-0.5 leading-tight">
                           -40%
                         </div>
                       </div>
                     ) : isBackCoverThumb ? (
-                      /* Back cover miniature: store locator preview */
                       <div className="h-full flex flex-col items-center justify-center text-center p-0.5">
-                        <span className="text-[8px] leading-none">🏪</span>
-                        <div className="text-[4px] font-bold text-gray-700 mt-0.5">350+ Magasins</div>
-                        <div className="text-[3.5px] text-[#E30613] font-black">71 123 456</div>
+                        <span className="text-[7px] leading-none">🏪</span>
+                        <div className="text-[3.5px] font-bold text-gray-700 mt-0.5">350+ Magasins</div>
+                        <div className="text-[3px] text-[#E30613] font-black">71 123 456</div>
                       </div>
                     ) : (
-                      /* Inside page miniature: 2x2 grid of actual products */
                       <div className="h-full grid grid-cols-2 grid-rows-2 gap-0.5 bg-white p-0.5 rounded-[1px]">
                         {pageData.products.slice(0, 4).map((p) => (
                           <div key={p.id} className="relative bg-gray-50/60 rounded-[0.5px] flex items-center justify-center overflow-hidden p-0.2">
                             <img src={p.image} alt="" className="max-h-full max-w-full object-contain" />
-                            <span className="absolute bottom-0 right-0 bg-[#E30613] text-white text-[3.5px] font-black px-0.5 rounded-[0.5px] leading-tight">
+                            <span className="absolute bottom-0 right-0 bg-[#E30613] text-white text-[3px] font-black px-0.5 rounded-[0.5px] leading-tight">
                               {p.price.toFixed(1)}
                             </span>
                           </div>
@@ -582,13 +754,13 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                   </div>
 
                   {/* Mini Page Number Label */}
-                  <div className="w-full bg-gray-100/90 text-center text-[5px] font-mono font-bold text-gray-600 border-t border-gray-200/60 py-0.2 shrink-0">
+                  <div className="w-full bg-gray-100/90 text-center text-[4.5px] font-mono font-bold text-gray-600 border-t border-gray-200/60 py-0.2 shrink-0">
                     P. {index + 1}
                   </div>
                 </div>
 
                 <span
-                  className={`text-[9px] font-mono mt-0.5 transition-colors ${
+                  className={`text-[8px] font-mono mt-0.5 transition-colors leading-none ${
                     isActive ? 'text-[#E30613] font-black' : 'text-gray-400 group-hover:text-gray-200'
                   }`}
                 >
