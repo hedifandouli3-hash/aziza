@@ -33,7 +33,6 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
-  const [downloadToast, setDownloadToast] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bookRootRef = useRef<HTMLDivElement>(null);
@@ -41,6 +40,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
 
   const totalPages = catalogue.pageCount || CATALOGUE_PAGES.length;
+  const activePages = CATALOGUE_PAGES.slice(0, totalPages);
 
   // Initialize PageFlip instance
   useEffect(() => {
@@ -48,6 +48,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
 
     let isMounted = true;
     setIsReady(false);
+    setCurrentPageIndex(0);
 
     // Short timeout to guarantee DOM elements are rendered
     const timer = setTimeout(() => {
@@ -252,11 +253,6 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
     }
   };
 
-  const handleDownload = () => {
-    setDownloadToast(true);
-    setTimeout(() => setDownloadToast(false), 2400);
-  };
-
   // Bounds checks for disabled states
   const isAtFirst = currentPageIndex === 0;
   const isAtLast = isPortrait
@@ -393,23 +389,19 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
 
-          {/* Download PDF button */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={handleDownload}
+          {/* Optional PDF Download: Only shown if a genuine, accessible PDF asset exists */}
+          {catalogue.pdfUrl && catalogue.pdfUrl !== '#' && catalogue.pdfUrl !== '' && (
+            <a
+              href={catalogue.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               className="p-1.5 text-gray-300 hover:text-[#E30613] rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
-              title="Télécharger le flyer en PDF"
-              aria-label="Télécharger le flyer en PDF"
+              title="Ouvrir le catalogue PDF officiel"
+              aria-label="Ouvrir le catalogue PDF officiel"
             >
               <Download className="w-3.5 h-3.5" />
-            </button>
-            {downloadToast && (
-              <span className="absolute -bottom-8 right-0 bg-[#E30613] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-40 animate-in fade-in flex items-center gap-1">
-                <Check className="w-3 h-3" /> Téléchargement lancé
-              </span>
-            )}
-          </div>
+            </a>
+          )}
 
           {/* Share button */}
           <div className="relative">
@@ -478,7 +470,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             ref={bookRootRef}
             className="catalogue-flipbook-root mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden bg-white"
           >
-            {CATALOGUE_PAGES.map((page, index) => (
+            {activePages.map((page, index) => (
               <div
                 key={page.pageNumber}
                 className="flyer-page-item bg-[#FAF9F5] overflow-hidden"
@@ -488,6 +480,8 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                   page={page}
                   pageNumber={index + 1}
                   totalPages={totalPages}
+                  catalogueTitle={catalogue.title}
+                  cataloguePeriod={catalogue.period}
                 />
               </div>
             ))}

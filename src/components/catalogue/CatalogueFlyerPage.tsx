@@ -7,10 +7,12 @@ interface CatalogueFlyerPageProps {
   page: CataloguePage;
   pageNumber: number;
   totalPages: number;
+  catalogueTitle?: string;
+  cataloguePeriod?: string;
 }
 
 export const CatalogueFlyerPage = React.forwardRef<HTMLDivElement, CatalogueFlyerPageProps>(
-  ({ page, pageNumber, totalPages }, ref) => {
+  ({ page, pageNumber, totalPages, catalogueTitle, cataloguePeriod }, ref) => {
     const isCover = pageNumber === 1;
     const isBackCover = pageNumber === totalPages;
 
@@ -38,8 +40,8 @@ export const CatalogueFlyerPage = React.forwardRef<HTMLDivElement, CatalogueFlye
                 <span className="font-black text-2xl sm:text-3xl tracking-tighter">AZIZA</span>
                 <span className="text-sm sm:text-base font-bold font-arabic">عزيزة</span>
               </div>
-              <div className="bg-amber-400 text-[#E30613] text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs">
-                Catalogue Officiel
+              <div className="bg-amber-400 text-[#E30613] text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-xs truncate max-w-[150px]">
+                {catalogueTitle || 'Catalogue Officiel'}
               </div>
             </div>
 
@@ -49,7 +51,7 @@ export const CatalogueFlyerPage = React.forwardRef<HTMLDivElement, CatalogueFlye
 
             {/* Date Ribbon */}
             <div className="mt-2 inline-block bg-black/25 px-3 py-1 rounded-full text-[11px] font-semibold text-white/95 border border-white/20">
-              Offres valables du 22 au 30 Octobre 2026
+              {cataloguePeriod ? `Offres valables ${cataloguePeriod}` : 'Offres valables du 22 au 30 Octobre 2026'}
             </div>
           </div>
 

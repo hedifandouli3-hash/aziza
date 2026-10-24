@@ -36,35 +36,46 @@ const PageFallback: React.FC = () => (
   </div>
 );
 
+// App Layout with conditional compact header for dedicated catalogue reader
+const AppLayout: React.FC = () => {
+  const { pathname } = useLocation();
+  // Dedicated catalogue viewer routes: /catalogues/:id (e.g. /catalogues/catalogue-octobre-2026)
+  const isDedicatedReader = pathname.startsWith('/catalogues/') && pathname !== '/catalogues';
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#1E293B]">
+      {/* Hide full oversized header on dedicated reader page to maximize reading viewport */}
+      {!isDedicatedReader && <Header />}
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col">
+        <Suspense fallback={<PageFallback />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/produits" element={<ProductsPage />} />
+            <Route path="/produits/:id" element={<ProductDetailPage />} />
+            <Route path="/catalogues" element={<CataloguesPage />} />
+            <Route path="/catalogues/:id" element={<CatalogueReaderPage />} />
+            <Route path="/magasins" element={<StoresPage />} />
+            <Route path="/a-propos" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
+      </main>
+
+      {/* Hide full footer on dedicated reader page */}
+      {!isDedicatedReader && <Footer />}
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   return (
     <LanguageProvider>
       <BrowserRouter>
         <ScrollToTop />
-        <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#1E293B]">
-          {/* Global Header */}
-          <Header />
-
-          {/* Main Content Area */}
-          <main className="flex-1">
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/produits" element={<ProductsPage />} />
-                <Route path="/produits/:id" element={<ProductDetailPage />} />
-                <Route path="/catalogues" element={<CataloguesPage />} />
-                <Route path="/catalogues/:id" element={<CatalogueReaderPage />} />
-                <Route path="/magasins" element={<StoresPage />} />
-                <Route path="/a-propos" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
-          </main>
-
-          {/* Global Footer */}
-          <Footer />
-        </div>
+        <AppLayout />
       </BrowserRouter>
     </LanguageProvider>
   );
