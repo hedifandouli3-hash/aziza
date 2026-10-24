@@ -265,45 +265,183 @@ export const CATALOGUE_PAGES: CataloguePage[] = [
   },
   {
     pageNumber: 10,
-    title: 'Bazar Utile & Vaisselle',
+    title: 'Bazar Utile & Arts de la Table',
     theme: 'Accessoires indispensables du quotidien',
-    image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=800&q=80',
-    products: []
+    image: 'https://images.unsplash.com/photo-1584269600519-112d071b35e6?auto=format&fit=crop&w=800&q=80',
+    products: [
+      {
+        id: 'poele-antiadhesive-24cm',
+        name: 'Poêle Antiadhésive 24cm',
+        brand: 'Bazar AZIZA',
+        price: 18.900,
+        oldPrice: 24.000,
+        discount: '-21%',
+        unit: 'Pièce',
+        image: 'https://images.unsplash.com/photo-1584269600519-112d071b35e6?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'service-verres-the-6p',
+        name: 'Service 6 Verres à Thé',
+        brand: 'Tradition',
+        price: 5.490,
+        unit: 'Set 6 pcs',
+        image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 11,
     title: 'Surgelés & Glaces',
     theme: 'Fraîcheur express et praticité',
     image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=800&q=80',
-    products: []
+    products: [
+      {
+        id: 'filet-merlu-surgle-1kg',
+        name: 'Filets de Merlu Blanc',
+        brand: 'Pêche & Mer',
+        price: 14.500,
+        oldPrice: 17.000,
+        discount: '-15%',
+        unit: '1 kg',
+        image: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'frites-surgeles-1kg',
+        name: 'Frites Coupe Classique',
+        brand: 'Frite d\'Or',
+        price: 4.850,
+        unit: '1 kg',
+        image: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 12,
     title: 'Gourmandises & Biscuits',
     theme: 'Le goûter préféré des petits et grands',
     image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=800&q=80',
-    products: []
+    products: [
+      {
+        id: 'biscuits-major-choco',
+        name: 'Pack Biscuits Fourrés Chocolat',
+        brand: 'Major',
+        price: 1.650,
+        oldPrice: 2.100,
+        discount: '-21%',
+        unit: 'Paquet 180g',
+        image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'chocolat-maestro-100g',
+        name: 'Tablette Chocolat au Lait',
+        brand: 'Maestro',
+        price: 2.250,
+        unit: '100 g',
+        image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 13,
-    title: 'Pains & Viennoiseries Cuits sur Place',
+    title: 'Pains & Viennoiseries',
     theme: 'La bonne odeur du pain chaud chaque matin',
     image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80',
-    products: []
+    products: [
+      {
+        id: 'croissant-beurre-aziza',
+        name: 'Croissants Pur Beurre x4',
+        brand: 'Fournil AZIZA',
+        price: 2.800,
+        oldPrice: 3.400,
+        discount: '-18%',
+        unit: 'Pack de 4',
+        image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'pain-de-mie-complet',
+        name: 'Pain de Mie Complet',
+        brand: 'Gourmet',
+        price: 2.450,
+        unit: '500 g',
+        image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 14,
     title: 'Conserves & Poissons',
     theme: 'Prêt à servir pour des salades fraîches',
     image: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=800&q=80',
-    products: []
+    products: [
+      {
+        id: 'thon-sidi-daoud-160g',
+        name: 'Thon à l\'Huile d\'Olive',
+        brand: 'Sidi Daoud',
+        price: 4.250,
+        oldPrice: 4.800,
+        discount: '-11%',
+        unit: '160 g',
+        image: 'https://images.unsplash.com/photo-1534483509719-3feaee7c30da?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'concentre-tomate-sicam-800g',
+        name: 'Double Concentré de Tomate',
+        brand: 'Sicam',
+        price: 3.850,
+        unit: '800 g',
+        image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 15,
-    title: 'Offres Spéciales Fidélité',
+    title: 'Avantages Fidélité AZIZA',
     theme: 'Avantages exclusifs avec votre carte AZIZA',
     image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80',
-    products: []
+    products: [
+      {
+        id: 'huile-olive-zitouna-1l',
+        name: 'Huile d\'Olive Vierge Extra',
+        brand: 'Zitouna',
+        price: 18.900,
+        oldPrice: 22.000,
+        discount: '-14%',
+        unit: '1 L',
+        image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 30
+      },
+      {
+        id: 'cafe-moulu-ben-yedder',
+        name: 'Café Moulu Tradition',
+        brand: 'Ben Yedder',
+        price: 4.900,
+        unit: '250 g',
+        image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=400&q=80',
+        top: 35,
+        left: 70
+      }
+    ]
   },
   {
     pageNumber: 16,

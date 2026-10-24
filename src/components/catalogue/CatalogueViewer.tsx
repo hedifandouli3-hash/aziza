@@ -13,8 +13,10 @@ import {
   RotateCcw,
   Share2,
   Download,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
+import { PageFlip } from 'page-flip';
 import type { Catalogue } from '../../types';
 import { CATALOGUE_PAGES } from '../../data/flyerPages';
 import { CatalogueFlyerPage } from './CatalogueFlyerPage';
@@ -23,150 +25,162 @@ interface CatalogueViewerProps {
   catalogue: Catalogue;
 }
 
-interface FlipState {
-  direction: 'next' | 'prev';
-  active: boolean;
-}
-
 export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) => {
   const navigate = useNavigate();
-  const [currentPageIndex, setCurrentPageIndex] = useState(0); // 0-indexed (Page 1 = index 0)
-  const [flipState, setFlipState] = useState<FlipState | null>(null);
+  const [currentPageIndex, setCurrentPageIndex] = useState(0); // 0-indexed
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
   const [downloadToast, setDownloadToast] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const isAnimatingRef = useRef(false);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
-  const transitionTimeoutRef = useRef<number | null>(null);
+  const bookRootRef = useRef<HTMLDivElement>(null);
+  const pageFlipInstanceRef = useRef<PageFlip | null>(null);
   const thumbnailScrollRef = useRef<HTMLDivElement>(null);
 
   const totalPages = catalogue.pageCount || CATALOGUE_PAGES.length;
-  const step = isMobile ? 1 : 2;
 
-  // Responsive breakpoint detection
+  // Initialize PageFlip instance
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    if (!bookRootRef.current) return;
 
-  // Safe page accessor from catalogue pages
-  const getPageData = useCallback((pageIndex: number) => {
-    const mod = pageIndex % CATALOGUE_PAGES.length;
-    return CATALOGUE_PAGES[mod] || CATALOGUE_PAGES[0];
-  }, []);
+    let isMounted = true;
+    setIsReady(false);
 
-  // Complete the flip animation and update state
-  const finishFlip = useCallback(
-    (direction: 'next' | 'prev') => {
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current);
-        transitionTimeoutRef.current = null;
-      }
+    // Short timeout to guarantee DOM elements are rendered
+    const timer = setTimeout(() => {
+      if (!bookRootRef.current || !isMounted) return;
 
-      const advanceStep = isMobile ? 1 : 2;
-      if (direction === 'next') {
-        setCurrentPageIndex((prev) => Math.min(prev + advanceStep, totalPages - 1));
-      } else {
-        setCurrentPageIndex((prev) => Math.max(0, prev - advanceStep));
-      }
+      try {
+        // Destroy existing instance if any
+        if (pageFlipInstanceRef.current) {
+          try {
+            pageFlipInstanceRef.current.destroy();
+          } catch {
+            // ignore
+          }
+          pageFlipInstanceRef.current = null;
+        }
 
-      setFlipState(null);
-      isAnimatingRef.current = false;
-    },
-    [isMobile, totalPages]
-  );
-
-  // Trigger 3D paper flip
-  const triggerFlip = useCallback(
-    (direction: 'next' | 'prev') => {
-      if (isAnimatingRef.current) return;
-
-      const advanceStep = isMobile ? 1 : 2;
-      if (direction === 'next') {
-        if (currentPageIndex + advanceStep >= totalPages) return;
-      } else {
-        if (currentPageIndex === 0) return;
-      }
-
-      isAnimatingRef.current = true;
-
-      // Stage 1: Render flipping leaf at rest (0deg, no transition)
-      setFlipState({ direction, active: false });
-
-      // Stage 2: In next animation frames, apply transition and target angle
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setFlipState({ direction, active: true });
+        const pf = new PageFlip(bookRootRef.current, {
+          width: 440,
+          height: 620,
+          size: 'stretch',
+          minWidth: 280,
+          maxWidth: 580,
+          minHeight: 400,
+          maxHeight: 820,
+          maxShadowOpacity: 0.6,
+          showCover: false, // Start with page 1 & 2 open side by side on desktop
+          mobileScrollSupport: false,
+          usePortrait: true, // Automatically single-page portrait on mobile
+          flippingTime: 750,
+          useMouseEvents: true,
+          clickEventForward: true,
+          showPageCorners: true,
+          swipeDistance: 25
         });
-      });
 
-      // Stage 3: Fallback timer in case transitionend does not fire
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current);
+        const pages = bookRootRef.current.querySelectorAll('.flyer-page-item');
+        if (pages.length > 0) {
+          pf.loadFromHTML(pages);
+        }
+
+        pf.on('flip', (e: { data: number }) => {
+          if (isMounted) {
+            setCurrentPageIndex(e.data);
+          }
+        });
+
+        pf.on('changeOrientation', (e: { data: string }) => {
+          if (isMounted) {
+            setIsPortrait(e.data === 'portrait');
+          }
+        });
+
+        pf.on('init', () => {
+          if (isMounted) {
+            setIsReady(true);
+            setIsPortrait(pf.getOrientation() === 'portrait');
+          }
+        });
+
+        pageFlipInstanceRef.current = pf;
+
+        // Fallback readiness trigger
+        setTimeout(() => {
+          if (isMounted) {
+            setIsReady(true);
+          }
+        }, 150);
+      } catch (err) {
+        console.error('PageFlip initialization error:', err);
+        if (isMounted) {
+          setIsReady(true);
+        }
       }
-      transitionTimeoutRef.current = window.setTimeout(() => {
-        finishFlip(direction);
-      }, 750);
-    },
-    [currentPageIndex, isMobile, totalPages, finishFlip]
-  );
+    }, 60);
 
-  const goToNext = useCallback(() => {
-    triggerFlip('next');
-  }, [triggerFlip]);
-
-  const goToPrev = useCallback(() => {
-    triggerFlip('prev');
-  }, [triggerFlip]);
-
-  const goToFirst = useCallback(() => {
-    if (isAnimatingRef.current || currentPageIndex === 0) return;
-    if (currentPageIndex === (isMobile ? 1 : 2)) {
-      triggerFlip('prev');
-    } else {
-      setCurrentPageIndex(0);
-    }
-  }, [currentPageIndex, isMobile, triggerFlip]);
-
-  const goToLast = useCallback(() => {
-    if (isAnimatingRef.current) return;
-    const advanceStep = isMobile ? 1 : 2;
-    const lastIndex = Math.floor((totalPages - 1) / advanceStep) * advanceStep;
-    if (currentPageIndex >= lastIndex) return;
-
-    if (currentPageIndex === lastIndex - advanceStep) {
-      triggerFlip('next');
-    } else {
-      setCurrentPageIndex(lastIndex);
-    }
-  }, [currentPageIndex, isMobile, totalPages, triggerFlip]);
-
-  const jumpToPage = useCallback(
-    (targetIndex: number) => {
-      if (isAnimatingRef.current) return;
-      const advanceStep = isMobile ? 1 : 2;
-      const alignedIndex = isMobile ? targetIndex : Math.floor(targetIndex / 2) * 2;
-      if (alignedIndex === currentPageIndex) return;
-
-      if (alignedIndex === currentPageIndex + advanceStep) {
-        triggerFlip('next');
-      } else if (alignedIndex === currentPageIndex - advanceStep) {
-        triggerFlip('prev');
-      } else {
-        setCurrentPageIndex(alignedIndex);
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+      if (pageFlipInstanceRef.current) {
+        try {
+          pageFlipInstanceRef.current.destroy();
+        } catch {
+          // ignore
+        }
+        pageFlipInstanceRef.current = null;
       }
-    },
-    [currentPageIndex, isMobile, triggerFlip]
-  );
+    };
+  }, [catalogue.id]);
+
+  // Turn to Next Page
+  const handleNext = useCallback(() => {
+    if (!pageFlipInstanceRef.current) return;
+    try {
+      pageFlipInstanceRef.current.flipNext('top');
+    } catch {
+      pageFlipInstanceRef.current.turnToNextPage();
+    }
+  }, []);
+
+  // Turn to Previous Page
+  const handlePrev = useCallback(() => {
+    if (!pageFlipInstanceRef.current) return;
+    try {
+      pageFlipInstanceRef.current.flipPrev('top');
+    } catch {
+      pageFlipInstanceRef.current.turnToPrevPage();
+    }
+  }, []);
+
+  // First page jump
+  const handleFirst = useCallback(() => {
+    if (!pageFlipInstanceRef.current) return;
+    pageFlipInstanceRef.current.turnToPage(0);
+    setCurrentPageIndex(0);
+  }, []);
+
+  // Last page jump
+  const handleLast = useCallback(() => {
+    if (!pageFlipInstanceRef.current) return;
+    const last = totalPages - 1;
+    pageFlipInstanceRef.current.turnToPage(last);
+    setCurrentPageIndex(last);
+  }, [totalPages]);
+
+  // Direct page jump from thumbnails
+  const handleJumpToPage = useCallback((index: number) => {
+    if (!pageFlipInstanceRef.current) return;
+    try {
+      pageFlipInstanceRef.current.flip(index);
+    } catch {
+      pageFlipInstanceRef.current.turnToPage(index);
+    }
+  }, []);
 
   // Fullscreen management
   const exitFullscreen = useCallback(() => {
@@ -190,13 +204,13 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight') {
-        goToNext();
+        handleNext();
       } else if (e.key === 'ArrowLeft') {
-        goToPrev();
+        handlePrev();
       } else if (e.key === 'Home') {
-        goToFirst();
+        handleFirst();
       } else if (e.key === 'End') {
-        goToLast();
+        handleLast();
       } else if (e.key === 'Escape') {
         if (isFullscreen) {
           exitFullscreen();
@@ -207,30 +221,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goToNext, goToPrev, goToFirst, goToLast, exitFullscreen, isFullscreen, navigate]);
-
-  // Touch swipe navigation for mobile
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-    touchStartX.current = null;
-    touchStartY.current = null;
-
-    // Ensure horizontal swipe dominant
-    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX < 0) {
-        goToNext();
-      } else {
-        goToPrev();
-      }
-    }
-  };
+  }, [handleNext, handlePrev, handleFirst, handleLast, exitFullscreen, isFullscreen, navigate]);
 
   // Keep active thumbnail scrolled into view
   useEffect(() => {
@@ -241,19 +232,12 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
     }
   }, [currentPageIndex]);
 
-  // Handle transition end for realistic CSS 3D transform
-  const handleTransitionEnd = (e: React.TransitionEvent) => {
-    if (e.propertyName === 'transform' && flipState) {
-      finishFlip(flipState.direction);
-    }
-  };
-
   const handleShare = () => {
     if (navigator.share) {
       navigator
         .share({
           title: `${catalogue.title} - AZIZA Tunisie`,
-          text: `Découvrez les offres de la semaine sur le ${catalogue.title} AZIZA Tunisie`,
+          text: `Découvrez les promotions du catalogue ${catalogue.title} AZIZA`,
           url: window.location.href
         })
         .catch(() => {});
@@ -262,7 +246,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
         .writeText(window.location.href)
         .then(() => {
           setCopiedToast(true);
-          setTimeout(() => setCopiedToast(false), 2200);
+          setTimeout(() => setCopiedToast(false), 2000);
         })
         .catch(() => {});
     }
@@ -273,54 +257,11 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
     setTimeout(() => setDownloadToast(false), 2400);
   };
 
-  // Direct page click handlers (ignores clicks on child links or buttons)
-  const handleRightPageClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('a') || target.closest('button')) return;
-    goToNext();
-  };
-
-  const handleLeftPageClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.closest('a') || target.closest('button')) return;
-    goToPrev();
-  };
-
-  // Base pages calculation
-  const leftPageData = getPageData(currentPageIndex);
-  const rightPageData =
-    !isMobile && currentPageIndex + 1 < totalPages ? getPageData(currentPageIndex + 1) : null;
-
-  // Pages involved during flip animation
-  const isFlipping = Boolean(flipState);
-  const isFlippingNext = flipState?.direction === 'next';
-  const isFlippingPrev = flipState?.direction === 'prev';
-
-  // For NEXT flip:
-  // - underLeft: currentPageIndex (Page 1)
-  // - underRight: currentPageIndex + 3 (Page 4)
-  // - leaf front: currentPageIndex + 1 (Page 2)
-  // - leaf back: currentPageIndex + 2 (Page 3)
-  const underLeftDataNext = leftPageData;
-  const underRightDataNext =
-    currentPageIndex + 3 < totalPages ? getPageData(currentPageIndex + 3) : null;
-  const leafFrontDataNext = rightPageData || leftPageData;
-  const leafBackDataNext =
-    currentPageIndex + 2 < totalPages ? getPageData(currentPageIndex + 2) : getPageData(currentPageIndex);
-
-  // For PREV flip:
-  // - underLeft: currentPageIndex - 2 (Page 1)
-  // - underRight: currentPageIndex + 1 (Page 4)
-  // - leaf front: currentPageIndex (Page 3)
-  // - leaf back: currentPageIndex - 1 (Page 2)
-  const underLeftDataPrev =
-    currentPageIndex >= 2 ? getPageData(currentPageIndex - 2) : getPageData(0);
-  const leafFrontDataPrev = leftPageData;
-  const leafBackDataPrev =
-    currentPageIndex >= 1 ? getPageData(currentPageIndex - 1) : getPageData(0);
-
+  // Bounds checks for disabled states
   const isAtFirst = currentPageIndex === 0;
-  const isAtLast = currentPageIndex + step >= totalPages;
+  const isAtLast = isPortrait
+    ? currentPageIndex >= totalPages - 1
+    : currentPageIndex >= totalPages - 2;
 
   return (
     <div
@@ -330,18 +271,18 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
       }`}
     >
       {/* =========================================================================
-          TOP NAVIGATION BAR (AZIZA RED CHEVRONS & REALISTIC TOOLBAR)
+          REFINED TOP TOOLBAR (AZIZA RED CHEVRONS & SLEEK CONTROLS)
           ========================================================================= */}
-      <div className="bg-[#0B1120] px-3 sm:px-6 py-2.5 sm:py-3 border-b border-gray-800 flex items-center justify-between gap-2 sm:gap-4 z-30">
+      <div className="bg-[#0B1120] px-3 sm:px-6 py-2 sm:py-2.5 border-b border-gray-800 flex items-center justify-between gap-2 sm:gap-4 z-30">
         {/* Left: Back & Title */}
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={() => navigate('/catalogues')}
             aria-label="Retourner aux catalogues"
-            className="flex items-center gap-1.5 text-xs font-bold text-gray-200 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-800/90 hover:bg-[#E30613] transition-all flex-shrink-0 shadow-xs"
+            className="flex items-center gap-1.5 text-xs font-bold text-gray-200 hover:text-white px-2.5 sm:px-3 py-1.5 rounded-xl bg-gray-800/90 hover:bg-[#E30613] transition-all flex-shrink-0 cursor-pointer shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Retour aux catalogues</span>
             <span className="md:hidden">Retour</span>
           </button>
@@ -353,35 +294,35 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           </div>
         </div>
 
-        {/* Center: AZIZA RED NAVIGATION CONTROLS (|<<  <  PAGE  >  >>|) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 bg-gray-900/90 px-1.5 py-1 rounded-2xl border border-gray-800 shadow-inner flex-shrink-0">
+        {/* Center: REFINED AZIZA RED CHEVRON CONTROLS (|<<  <  PAGE  >  >>|) */}
+        <div className="flex items-center gap-1 bg-gray-900/90 px-1 py-0.5 rounded-xl border border-gray-800 shadow-inner flex-shrink-0">
           {/* First Page (|<<) */}
           <button
             type="button"
-            onClick={goToFirst}
-            disabled={isAtFirst || isFlipping}
+            onClick={handleFirst}
+            disabled={isAtFirst}
             title="Première page (Début)"
             aria-label="Première page"
-            className="p-1 sm:p-1.5 rounded-lg bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
+            className="p-1 rounded-md bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
           >
-            <ChevronsLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronsLeft className="w-3.5 h-3.5" />
           </button>
 
           {/* Previous Page (<) */}
           <button
             type="button"
-            onClick={goToPrev}
-            disabled={isAtFirst || isFlipping}
+            onClick={handlePrev}
+            disabled={isAtFirst}
             title="Page précédente (Flèche gauche)"
             aria-label="Page précédente"
-            className="p-1 sm:p-1.5 rounded-lg bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
+            className="p-1 rounded-md bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
           >
-            <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronLeft className="w-3.5 h-3.5" />
           </button>
 
           {/* Page Counter Badge */}
-          <div className="px-2.5 sm:px-3.5 py-0.5 text-[11px] sm:text-xs font-mono font-bold text-gray-100 whitespace-nowrap min-w-[70px] sm:min-w-[100px] text-center">
-            {isMobile ? (
+          <div className="px-2 sm:px-3 py-0.5 text-[11px] sm:text-xs font-mono font-bold text-gray-100 whitespace-nowrap min-w-[75px] sm:min-w-[95px] text-center">
+            {isPortrait ? (
               <span>
                 Page <span className="text-[#E30613] font-black">{currentPageIndex + 1}</span> / {totalPages}
               </span>
@@ -390,7 +331,7 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                 Pages{' '}
                 <span className="text-[#E30613] font-black">
                   {currentPageIndex + 1}
-                  {rightPageData ? ` - ${currentPageIndex + 2}` : ''}
+                  {currentPageIndex + 1 < totalPages ? ` - ${currentPageIndex + 2}` : ''}
                 </span>{' '}
                 / {totalPages}
               </span>
@@ -400,38 +341,38 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           {/* Next Page (>) */}
           <button
             type="button"
-            onClick={goToNext}
-            disabled={isAtLast || isFlipping}
+            onClick={handleNext}
+            disabled={isAtLast}
             title="Page suivante (Flèche droite)"
             aria-label="Page suivante"
-            className="p-1 sm:p-1.5 rounded-lg bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
+            className="p-1 rounded-md bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
           >
-            <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
 
           {/* Last Page (>>|) */}
           <button
             type="button"
-            onClick={goToLast}
-            disabled={isAtLast || isFlipping}
+            onClick={handleLast}
+            disabled={isAtLast}
             title="Dernière page (Fin)"
             aria-label="Dernière page"
-            className="p-1 sm:p-1.5 rounded-lg bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
+            className="p-1 rounded-md bg-[#E30613] hover:bg-[#c20510] active:scale-95 disabled:bg-gray-800 disabled:text-gray-600 text-white transition-all shadow-xs disabled:cursor-not-allowed cursor-pointer"
           >
-            <ChevronsRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <ChevronsRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Right: Zoom, Download, Share, Fullscreen Actions */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
+        {/* Right: Zoom & Utilities */}
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setZoomLevel((z) => Math.max(0.8, Number((z - 0.1).toFixed(1))))}
+            onClick={() => setZoomLevel((z) => Math.max(0.85, Number((z - 0.05).toFixed(2))))}
             className="p-1.5 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800 hidden sm:block transition-colors"
             title="Zoom arrière"
             aria-label="Zoom arrière"
           >
-            <ZoomOut className="w-4 h-4" />
+            <ZoomOut className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
@@ -440,16 +381,16 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             title="Réinitialiser zoom"
             aria-label="Réinitialiser zoom"
           >
-            <RotateCcw className="w-4 h-4" />
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => setZoomLevel((z) => Math.min(1.4, Number((z + 0.1).toFixed(1))))}
+            onClick={() => setZoomLevel((z) => Math.min(1.3, Number((z + 0.05).toFixed(2))))}
             className="p-1.5 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800 hidden sm:block transition-colors"
             title="Zoom avant"
             aria-label="Zoom avant"
           >
-            <ZoomIn className="w-4 h-4" />
+            <ZoomIn className="w-3.5 h-3.5" />
           </button>
 
           {/* Download PDF button */}
@@ -457,11 +398,11 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             <button
               type="button"
               onClick={handleDownload}
-              className="p-1.5 text-gray-300 hover:text-[#E30613] rounded-lg hover:bg-gray-800 transition-colors"
-              title="Télécharger le catalogue PDF"
-              aria-label="Télécharger le catalogue PDF"
+              className="p-1.5 text-gray-300 hover:text-[#E30613] rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
+              title="Télécharger le flyer en PDF"
+              aria-label="Télécharger le flyer en PDF"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
             </button>
             {downloadToast && (
               <span className="absolute -bottom-8 right-0 bg-[#E30613] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-40 animate-in fade-in flex items-center gap-1">
@@ -475,11 +416,11 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
             <button
               type="button"
               onClick={handleShare}
-              className="p-1.5 text-gray-300 hover:text-[#E30613] rounded-lg hover:bg-gray-800 transition-colors"
+              className="p-1.5 text-gray-300 hover:text-[#E30613] rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
               title="Partager le catalogue"
               aria-label="Partager le catalogue"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3.5 h-3.5" />
             </button>
             {copiedToast && (
               <span className="absolute -bottom-8 right-0 bg-[#E30613] text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg whitespace-nowrap z-40 animate-in fade-in flex items-center gap-1">
@@ -492,443 +433,89 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
           <button
             type="button"
             onClick={toggleFullscreen}
-            className="p-1.5 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-1.5 text-gray-300 hover:text-white rounded-lg hover:bg-gray-800 transition-colors cursor-pointer"
             title={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
             aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
           >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
 
       {/* =========================================================================
-          MAIN READING STAGE (CLEAN LIGHT NEUTRAL STAGE WITH 3D PERSPECTIVE)
+          MAIN READING STAGE (CLEAN LIGHT NEUTRAL BACKDROP & 3D PAGE-FLIP CANVAS)
           ========================================================================= */}
-      <div
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        className="relative flex-1 bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] p-2 sm:p-6 md:p-8 flex items-center justify-center overflow-hidden min-h-[480px] sm:min-h-[580px] md:min-h-[640px]"
-      >
-        {/* Floating Left Arrow on Reading Stage */}
+      <div className="relative flex-1 bg-gradient-to-b from-[#F8FAFC] via-[#F1F5F9] to-[#E2E8F0] p-2 sm:p-4 md:p-6 flex items-center justify-center overflow-hidden min-h-[500px] sm:min-h-[600px] md:min-h-[660px]">
+        {/* Subtle loading spinner while page-flip binds DOM canvas */}
+        {!isReady && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-[#F1F5F9]/80 backdrop-blur-xs">
+            <Loader2 className="w-8 h-8 text-[#E30613] animate-spin mb-2" />
+            <p className="text-xs font-bold text-gray-600">Chargement du catalogue...</p>
+          </div>
+        )}
+
+        {/* Floating Left Arrow */}
         <button
           type="button"
-          onClick={goToPrev}
-          disabled={isAtFirst || isFlipping}
+          onClick={handlePrev}
+          disabled={isAtFirst}
           aria-label="Pages précédentes"
-          className="absolute left-2 sm:left-4 md:left-6 z-25 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/95 hover:bg-[#E30613] text-gray-800 hover:text-white disabled:opacity-0 disabled:pointer-events-none shadow-xl border border-gray-200/80 hover:border-[#E30613] flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95"
+          className="absolute left-2 sm:left-4 z-25 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-[#E30613] text-gray-800 hover:text-white disabled:opacity-0 disabled:pointer-events-none shadow-md border border-gray-200/80 hover:border-[#E30613] flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-5 h-5" />
         </button>
 
-        {/* 3D BOOK SPREAD CONTAINER */}
+        {/* PageFlip Container with subtle outer paper shadow and zoom scaling */}
         <div
-          className="transition-transform duration-300 max-w-5xl w-full select-none"
           style={{
             transform: `scale(${zoomLevel})`,
-            perspective: '2500px',
-            WebkitPerspective: '2500px'
+            transformOrigin: 'center center',
+            transition: 'transform 200ms ease'
           }}
+          className="w-full flex items-center justify-center select-none"
         >
-          {isMobile ? (
-            /* =================================================================
-               MOBILE SINGLE-PAGE 3D FLIP VIEW
-               ================================================================= */
-            <div
-              className="relative w-full max-w-md mx-auto shadow-2xl rounded-xl overflow-hidden bg-white"
-              style={{
-                perspective: '1800px',
-                WebkitPerspective: '1800px'
-              }}
-            >
-              {/* Underlying Base Page */}
-              <div className="w-full">
+          <div
+            ref={bookRootRef}
+            className="catalogue-flipbook-root mx-auto shadow-[0_20px_50px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden bg-white"
+          >
+            {CATALOGUE_PAGES.map((page, index) => (
+              <div
+                key={page.pageNumber}
+                className="flyer-page-item bg-[#FAF9F5] overflow-hidden"
+                data-density={index === 0 || index === totalPages - 1 ? 'hard' : 'soft'}
+              >
                 <CatalogueFlyerPage
-                  page={
-                    flipState
-                      ? isFlippingNext
-                        ? getPageData(currentPageIndex + 1)
-                        : getPageData(Math.max(0, currentPageIndex - 1))
-                      : leftPageData
-                  }
-                  pageNumber={
-                    flipState
-                      ? isFlippingNext
-                        ? currentPageIndex + 2
-                        : currentPageIndex
-                      : currentPageIndex + 1
-                  }
+                  page={page}
+                  pageNumber={index + 1}
                   totalPages={totalPages}
                 />
               </div>
-
-              {/* Mobile Flipping Leaf */}
-              {flipState && (
-                <div
-                  onTransitionEnd={handleTransitionEnd}
-                  className="absolute inset-0 z-30 pointer-events-none"
-                  style={{
-                    transformOrigin: isFlippingNext ? 'left center' : 'right center',
-                    transformStyle: 'preserve-3d',
-                    WebkitTransformStyle: 'preserve-3d',
-                    transform: isFlippingNext
-                      ? flipState.active
-                        ? 'rotateY(-180deg)'
-                        : 'rotateY(0deg)'
-                      : flipState.active
-                      ? 'rotateY(180deg)'
-                      : 'rotateY(0deg)',
-                    transition: flipState.active
-                      ? 'transform 650ms cubic-bezier(0.25, 0.1, 0.25, 1)'
-                      : 'none',
-                    willChange: 'transform'
-                  }}
-                >
-                  {/* Front Face */}
-                  <div
-                    className="absolute inset-0 bg-white"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(0deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={leftPageData}
-                      pageNumber={currentPageIndex + 1}
-                      totalPages={totalPages}
-                    />
-                    <div
-                      className="absolute inset-0 bg-black/25 transition-opacity duration-300"
-                      style={{ opacity: flipState.active ? 0.6 : 0 }}
-                    />
-                  </div>
-
-                  {/* Back Face */}
-                  <div
-                    className="absolute inset-0 bg-white"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={
-                        isFlippingNext
-                          ? getPageData(currentPageIndex + 1)
-                          : getPageData(Math.max(0, currentPageIndex - 1))
-                      }
-                      pageNumber={isFlippingNext ? currentPageIndex + 2 : currentPageIndex}
-                      totalPages={totalPages}
-                    />
-                    <div
-                      className="absolute inset-0 bg-black/25 transition-opacity duration-500"
-                      style={{ opacity: flipState.active ? 0 : 0.6 }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            /* =================================================================
-               DESKTOP TWO-PAGE SPREAD WITH AUTHENTIC 3D PAPER FLIP
-               ================================================================= */
-            <div
-              className="relative grid grid-cols-2 bg-white rounded-2xl overflow-visible shadow-[0_20px_50px_rgba(0,0,0,0.18),0_0_0_1px_rgba(0,0,0,0.06),-4px_2px_0_0_#f1f5f9,4px_2px_0_0_#f1f5f9] select-none"
-              style={{
-                transformStyle: 'preserve-3d',
-                WebkitTransformStyle: 'preserve-3d'
-              }}
-            >
-              {/* -------------------------------------------------------------
-                  LEFT PAGE (BASE VIEW / UNDERNEATH WHEN FLIPPING PREV)
-                  ------------------------------------------------------------- */}
-              <div
-                onClick={handleLeftPageClick}
-                className="relative border-r border-gray-200/80 cursor-pointer overflow-hidden rounded-l-2xl group/leftpage"
-                title="Cliquer pour feuilleter vers la gauche"
-              >
-                <CatalogueFlyerPage
-                  page={isFlippingPrev ? underLeftDataPrev : underLeftDataNext}
-                  pageNumber={
-                    isFlippingPrev
-                      ? Math.max(1, currentPageIndex - 1)
-                      : currentPageIndex + 1
-                  }
-                  totalPages={totalPages}
-                />
-
-                {/* Left Page Corner Curl Hint */}
-                {!isAtFirst && !flipState && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToPrev();
-                    }}
-                    aria-label="Tourner à la page précédente"
-                    className="group/curl absolute bottom-0 left-0 w-14 h-14 z-20 flex items-end justify-start p-1 overflow-hidden transition-all hover:w-18 hover:h-18 cursor-pointer"
-                    title="Cliquer pour tourner la page précédente"
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-tr from-gray-200 via-white to-gray-50 group-hover/curl:from-red-100 group-hover/curl:via-white shadow-[3px_-3px_7px_rgba(0,0,0,0.18)] -rotate-45 -translate-x-6 translate-y-6 group-hover/curl:-translate-x-4 group-hover/curl:translate-y-4 transition-transform border border-gray-300/80" />
-                    <span className="absolute bottom-1 left-1 text-[9px] font-black text-gray-500 group-hover/curl:text-[#E30613] tracking-tighter">
-                      &lt;
-                    </span>
-                  </button>
-                )}
-
-                {/* Soft gradient cast when left leaf lifts during flip prev */}
-                {isFlippingPrev && (
-                  <div
-                    className="absolute inset-0 pointer-events-none transition-opacity duration-500 z-15"
-                    style={{
-                      background:
-                        'linear-gradient(to left, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.1) 30%, transparent 70%)',
-                      opacity: flipState?.active ? 0 : 0.8
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* -------------------------------------------------------------
-                  CENTRAL SPIDER SPINE & CREASE SHADOW
-                  ------------------------------------------------------------- */}
-              <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-8 pointer-events-none z-20 flex">
-                {/* Left half gutter gradient */}
-                <div className="w-1/2 h-full bg-gradient-to-r from-transparent via-black/10 to-black/25" />
-                {/* 1px Center Crease Line with paper highlight */}
-                <div className="w-[1px] h-full bg-black/35 shadow-[0_0_2px_rgba(255,255,255,0.4)]" />
-                {/* Right half gutter gradient */}
-                <div className="w-1/2 h-full bg-gradient-to-l from-transparent via-black/10 to-black/25" />
-              </div>
-
-              {/* -------------------------------------------------------------
-                  RIGHT PAGE (BASE VIEW / UNDERNEATH WHEN FLIPPING NEXT)
-                  ------------------------------------------------------------- */}
-              <div
-                onClick={handleRightPageClick}
-                className="relative cursor-pointer overflow-hidden rounded-r-2xl group/rightpage"
-                title="Cliquer pour feuilleter vers la droite"
-              >
-                {rightPageData || isFlippingNext ? (
-                  <CatalogueFlyerPage
-                    page={isFlippingNext && underRightDataNext ? underRightDataNext : (rightPageData || leftPageData)}
-                    pageNumber={
-                      isFlippingNext
-                        ? currentPageIndex + 4
-                        : currentPageIndex + 2
-                    }
-                    totalPages={totalPages}
-                  />
-                ) : (
-                  <div className="h-full min-h-[500px] sm:min-h-[580px] bg-gray-50 flex flex-col items-center justify-center text-gray-400 p-6 text-center">
-                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-[#E30613] font-black text-xl mb-2">
-                      AZIZA
-                    </div>
-                    <p className="text-xs font-bold text-gray-600">Fin du catalogue</p>
-                    <p className="text-[11px] text-gray-400 mt-1">
-                      Retrouvez tous nos produits et offres en magasin.
-                    </p>
-                  </div>
-                )}
-
-                {/* Right Page Corner Curl Hint */}
-                {!isAtLast && !flipState && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToNext();
-                    }}
-                    aria-label="Tourner à la page suivante"
-                    className="group/curl absolute bottom-0 right-0 w-14 h-14 z-20 flex items-end justify-end p-1 overflow-hidden transition-all hover:w-18 hover:h-18 cursor-pointer"
-                    title="Cliquer pour tourner la page suivante"
-                  >
-                    <div className="w-12 h-12 bg-gradient-to-tl from-gray-200 via-white to-gray-50 group-hover/curl:from-red-100 group-hover/curl:via-white shadow-[-3px_-3px_7px_rgba(0,0,0,0.18)] rotate-45 translate-x-6 translate-y-6 group-hover/curl:translate-x-4 group-hover/curl:translate-y-4 transition-transform border border-gray-300/80" />
-                    <span className="absolute bottom-1 right-1 text-[9px] font-black text-gray-500 group-hover/curl:text-[#E30613] tracking-tighter">
-                      &gt;
-                    </span>
-                  </button>
-                )}
-
-                {/* Soft gradient cast when right leaf lifts during flip next */}
-                {isFlippingNext && (
-                  <div
-                    className="absolute inset-0 pointer-events-none transition-opacity duration-500 z-15"
-                    style={{
-                      background:
-                        'linear-gradient(to right, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.12) 30%, transparent 70%)',
-                      opacity: flipState?.active ? 0 : 0.8
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* -------------------------------------------------------------
-                  FLIPPING LEAF FOR NEXT (ROTATES RIGHT TO LEFT: 0deg -> -180deg)
-                  ------------------------------------------------------------- */}
-              {isFlippingNext && (
-                <div
-                  onTransitionEnd={handleTransitionEnd}
-                  className="absolute inset-y-0 left-1/2 w-1/2 pointer-events-none z-30"
-                  style={{
-                    transformOrigin: 'left center',
-                    transformStyle: 'preserve-3d',
-                    WebkitTransformStyle: 'preserve-3d',
-                    transform: flipState.active ? 'rotateY(-180deg)' : 'rotateY(0deg)',
-                    transition: flipState.active
-                      ? 'transform 650ms cubic-bezier(0.25, 0.1, 0.25, 1)'
-                      : 'none',
-                    willChange: 'transform'
-                  }}
-                >
-                  {/* Leaf Front Face: Shows Current Right Page */}
-                  <div
-                    className="absolute inset-0 bg-white overflow-hidden rounded-r-2xl shadow-xl"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(0deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={leafFrontDataNext}
-                      pageNumber={currentPageIndex + 2}
-                      totalPages={totalPages}
-                    />
-                    {/* Moving paper curl lighting & shadow on front face */}
-                    <div
-                      className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to right, rgba(0,0,0,0.22) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.06) 65%, rgba(0,0,0,0.35) 100%)',
-                        opacity: flipState.active ? 0.7 : 0
-                      }}
-                    />
-                  </div>
-
-                  {/* Leaf Back Face: Shows Upcoming Left Page */}
-                  <div
-                    className="absolute inset-0 bg-white overflow-hidden rounded-l-2xl shadow-xl"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={leafBackDataNext}
-                      pageNumber={currentPageIndex + 3}
-                      totalPages={totalPages}
-                    />
-                    {/* Moving paper curl lighting & shadow on back face */}
-                    <div
-                      className="absolute inset-0 transition-opacity duration-500 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to left, rgba(0,0,0,0.25) 0%, rgba(255,255,255,0.2) 20%, rgba(0,0,0,0.05) 60%, rgba(0,0,0,0.3) 100%)',
-                        opacity: flipState.active ? 0 : 0.7
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* -------------------------------------------------------------
-                  FLIPPING LEAF FOR PREV (ROTATES LEFT TO RIGHT: 0deg -> +180deg)
-                  ------------------------------------------------------------- */}
-              {isFlippingPrev && (
-                <div
-                  onTransitionEnd={handleTransitionEnd}
-                  className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-30"
-                  style={{
-                    transformOrigin: 'right center',
-                    transformStyle: 'preserve-3d',
-                    WebkitTransformStyle: 'preserve-3d',
-                    transform: flipState.active ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                    transition: flipState.active
-                      ? 'transform 650ms cubic-bezier(0.25, 0.1, 0.25, 1)'
-                      : 'none',
-                    willChange: 'transform'
-                  }}
-                >
-                  {/* Leaf Front Face: Shows Current Left Page */}
-                  <div
-                    className="absolute inset-0 bg-white overflow-hidden rounded-l-2xl shadow-xl"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(0deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={leafFrontDataPrev}
-                      pageNumber={currentPageIndex + 1}
-                      totalPages={totalPages}
-                    />
-                    {/* Moving paper curl lighting & shadow on front face */}
-                    <div
-                      className="absolute inset-0 transition-opacity duration-300 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to left, rgba(0,0,0,0.22) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.06) 65%, rgba(0,0,0,0.35) 100%)',
-                        opacity: flipState.active ? 0.7 : 0
-                      }}
-                    />
-                  </div>
-
-                  {/* Leaf Back Face: Shows Upcoming Right Page */}
-                  <div
-                    className="absolute inset-0 bg-white overflow-hidden rounded-r-2xl shadow-xl"
-                    style={{
-                      backfaceVisibility: 'hidden',
-                      WebkitBackfaceVisibility: 'hidden',
-                      transform: 'rotateY(180deg) translateZ(1px)'
-                    }}
-                  >
-                    <CatalogueFlyerPage
-                      page={leafBackDataPrev}
-                      pageNumber={currentPageIndex}
-                      totalPages={totalPages}
-                    />
-                    {/* Moving paper curl lighting & shadow on back face */}
-                    <div
-                      className="absolute inset-0 transition-opacity duration-500 pointer-events-none"
-                      style={{
-                        background:
-                          'linear-gradient(to right, rgba(0,0,0,0.25) 0%, rgba(255,255,255,0.2) 20%, rgba(0,0,0,0.05) 60%, rgba(0,0,0,0.3) 100%)',
-                        opacity: flipState.active ? 0 : 0.7
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+            ))}
+          </div>
         </div>
 
-        {/* Floating Right Arrow on Reading Stage */}
+        {/* Floating Right Arrow */}
         <button
           type="button"
-          onClick={goToNext}
-          disabled={isAtLast || isFlipping}
+          onClick={handleNext}
+          disabled={isAtLast}
           aria-label="Pages suivantes"
-          className="absolute right-2 sm:right-4 md:right-6 z-25 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/95 hover:bg-[#E30613] text-gray-800 hover:text-white disabled:opacity-0 disabled:pointer-events-none shadow-xl border border-gray-200/80 hover:border-[#E30613] flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95"
+          className="absolute right-2 sm:right-4 z-25 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 hover:bg-[#E30613] text-gray-800 hover:text-white disabled:opacity-0 disabled:pointer-events-none shadow-md border border-gray-200/80 hover:border-[#E30613] flex items-center justify-center transition-all duration-200 cursor-pointer active:scale-95"
         >
-          <ChevronRight className="w-6 h-6" />
+          <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
       {/* =========================================================================
           BOTTOM THUMBNAIL FILMSTRIP (PAGES 1 TO 16 DIRECT JUMP)
           ========================================================================= */}
-      <div className="bg-[#0B1120] p-2 sm:p-3 border-t border-gray-800">
+      <div className="bg-[#0B1120] p-2 sm:p-2.5 border-t border-gray-800">
         <div
           ref={thumbnailScrollRef}
-          className="max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+          className="max-w-5xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
         >
           {Array.from({ length: totalPages }).map((_, index) => {
-            const isActive = isMobile
+            const isActive = isPortrait
               ? index === currentPageIndex
               : index === currentPageIndex || index === currentPageIndex + 1;
 
@@ -937,39 +524,39 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                 key={index}
                 type="button"
                 data-active={isActive ? 'true' : 'false'}
-                onClick={() => jumpToPage(index)}
+                onClick={() => handleJumpToPage(index)}
                 aria-label={`Aller à la page ${index + 1}`}
                 className={`flex-shrink-0 flex flex-col items-center group transition-all duration-200 cursor-pointer ${
-                  isActive ? 'scale-105' : 'opacity-65 hover:opacity-100'
+                  isActive ? 'scale-105' : 'opacity-60 hover:opacity-100'
                 }`}
               >
                 <div
-                  className={`w-10 sm:w-13 aspect-[3/4] rounded-sm overflow-hidden bg-white border-2 transition-all relative shadow-sm ${
+                  className={`w-9 sm:w-11 aspect-[3/4] rounded-xs overflow-hidden bg-white border-2 transition-all relative shadow-xs ${
                     isActive
                       ? 'border-[#E30613] ring-2 ring-[#E30613]/50'
                       : 'border-gray-700 group-hover:border-gray-400'
                   }`}
                 >
                   {/* Miniature representation of flyer header */}
-                  <div className="w-full h-2.5 bg-[#E30613] flex items-center justify-center">
-                    <span className="text-[6px] font-black text-white scale-75">AZIZA</span>
+                  <div className="w-full h-2 bg-[#E30613] flex items-center justify-center">
+                    <span className="text-[5px] font-black text-white scale-75">AZIZA</span>
                   </div>
                   {/* Miniature representation of product cards */}
-                  <div className="p-0.5 grid grid-cols-2 gap-0.5 h-full bg-gray-50">
-                    <div className="bg-red-50 rounded-[1px] flex items-center justify-center text-[7px] font-bold text-[#E30613]">
+                  <div className="p-0.5 grid grid-cols-2 gap-0.5 h-full bg-[#FAF9F5]">
+                    <div className="bg-red-100/60 rounded-[1px] flex items-center justify-center text-[6px] font-black text-[#E30613]">
                       %
                     </div>
-                    <div className="bg-amber-50 rounded-[1px] flex items-center justify-center text-[6px] text-gray-500">
+                    <div className="bg-amber-100/60 rounded-[1px] flex items-center justify-center text-[5px] text-gray-600 font-bold">
                       DT
                     </div>
                   </div>
                   {/* Number Overlay */}
-                  <div className="absolute inset-0 bg-black/15 group-hover:bg-transparent flex items-center justify-center text-[10px] font-black text-gray-900 drop-shadow-xs">
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent flex items-center justify-center text-[9px] font-black text-gray-900 drop-shadow-xs">
                     {index + 1}
                   </div>
                 </div>
                 <span
-                  className={`text-[10px] font-mono mt-0.5 transition-colors ${
+                  className={`text-[9px] font-mono mt-0.5 transition-colors ${
                     isActive ? 'text-[#E30613] font-black' : 'text-gray-400 group-hover:text-gray-200'
                   }`}
                 >
