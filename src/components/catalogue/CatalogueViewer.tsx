@@ -506,12 +506,15 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
       <div className="bg-[#0B1120] p-2 sm:p-2.5 border-t border-gray-800">
         <div
           ref={thumbnailScrollRef}
-          className="max-w-5xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
+          className="max-w-5xl mx-auto flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent"
         >
-          {Array.from({ length: totalPages }).map((_, index) => {
+          {activePages.map((pageData, index) => {
             const isActive = isPortrait
               ? index === currentPageIndex
               : index === currentPageIndex || index === currentPageIndex + 1;
+
+            const isCoverThumb = index === 0;
+            const isBackCoverThumb = index === totalPages - 1;
 
             return (
               <button
@@ -521,34 +524,69 @@ export const CatalogueViewer: React.FC<CatalogueViewerProps> = ({ catalogue }) =
                 onClick={() => handleJumpToPage(index)}
                 aria-label={`Aller à la page ${index + 1}`}
                 className={`flex-shrink-0 flex flex-col items-center group transition-all duration-200 cursor-pointer ${
-                  isActive ? 'scale-105' : 'opacity-60 hover:opacity-100'
+                  isActive ? 'scale-105' : 'opacity-70 hover:opacity-100'
                 }`}
               >
                 <div
-                  className={`w-9 sm:w-11 aspect-[3/4] rounded-xs overflow-hidden bg-white border-2 transition-all relative shadow-xs ${
+                  className={`w-11 sm:w-14 aspect-[1/1.41] rounded-xs overflow-hidden bg-[#FAF9F5] border-2 transition-all relative shadow-sm flex flex-col justify-between ${
                     isActive
                       ? 'border-[#E30613] ring-2 ring-[#E30613]/50'
                       : 'border-gray-700 group-hover:border-gray-400'
                   }`}
                 >
-                  {/* Miniature representation of flyer header */}
-                  <div className="w-full h-2 bg-[#E30613] flex items-center justify-center">
-                    <span className="text-[5px] font-black text-white scale-75">AZIZA</span>
+                  {/* Mini Header */}
+                  <div className="w-full h-2.5 sm:h-3 bg-[#E30613] text-white flex items-center justify-between px-0.5 shrink-0">
+                    <span className="text-[5px] font-black tracking-tighter">AZIZA</span>
+                    <span className="text-[4px] font-bold text-amber-300">
+                      {isCoverThumb ? 'PROMO' : isBackCoverThumb ? 'INFOS' : `P.${index + 1}`}
+                    </span>
                   </div>
-                  {/* Miniature representation of product cards */}
-                  <div className="p-0.5 grid grid-cols-2 gap-0.5 h-full bg-[#FAF9F5]">
-                    <div className="bg-red-100/60 rounded-[1px] flex items-center justify-center text-[6px] font-black text-[#E30613]">
-                      %
-                    </div>
-                    <div className="bg-amber-100/60 rounded-[1px] flex items-center justify-center text-[5px] text-gray-600 font-bold">
-                      DT
-                    </div>
+
+                  {/* Mini Content Area matching actual page artwork */}
+                  <div className="flex-1 p-0.5 flex flex-col justify-between overflow-hidden">
+                    {isCoverThumb ? (
+                      /* Cover miniature: hero products preview */
+                      <div className="h-full flex flex-col justify-between">
+                        <div className="h-1 bg-amber-400/80 rounded-xs mb-0.5" />
+                        <div className="grid grid-cols-2 gap-0.5 flex-1">
+                          {pageData.products.slice(0, 2).map((p) => (
+                            <div key={p.id} className="bg-white rounded-[1px] p-0.5 flex items-center justify-center overflow-hidden">
+                              <img src={p.image} alt="" className="max-h-full max-w-full object-contain" />
+                            </div>
+                          ))}
+                        </div>
+                        <div className="bg-[#E30613] text-white text-[4px] font-black text-center rounded-[0.5px] mt-0.5 leading-tight">
+                          -40%
+                        </div>
+                      </div>
+                    ) : isBackCoverThumb ? (
+                      /* Back cover miniature: store locator preview */
+                      <div className="h-full flex flex-col items-center justify-center text-center p-0.5">
+                        <span className="text-[8px] leading-none">🏪</span>
+                        <div className="text-[4px] font-bold text-gray-700 mt-0.5">350+ Magasins</div>
+                        <div className="text-[3.5px] text-[#E30613] font-black">71 123 456</div>
+                      </div>
+                    ) : (
+                      /* Inside page miniature: 2x2 grid of actual products */
+                      <div className="h-full grid grid-cols-2 grid-rows-2 gap-0.5 bg-white p-0.5 rounded-[1px]">
+                        {pageData.products.slice(0, 4).map((p) => (
+                          <div key={p.id} className="relative bg-gray-50/60 rounded-[0.5px] flex items-center justify-center overflow-hidden p-0.2">
+                            <img src={p.image} alt="" className="max-h-full max-w-full object-contain" />
+                            <span className="absolute bottom-0 right-0 bg-[#E30613] text-white text-[3.5px] font-black px-0.5 rounded-[0.5px] leading-tight">
+                              {p.price.toFixed(1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {/* Number Overlay */}
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent flex items-center justify-center text-[9px] font-black text-gray-900 drop-shadow-xs">
-                    {index + 1}
+
+                  {/* Mini Page Number Label */}
+                  <div className="w-full bg-gray-100/90 text-center text-[5px] font-mono font-bold text-gray-600 border-t border-gray-200/60 py-0.2 shrink-0">
+                    P. {index + 1}
                   </div>
                 </div>
+
                 <span
                   className={`text-[9px] font-mono mt-0.5 transition-colors ${
                     isActive ? 'text-[#E30613] font-black' : 'text-gray-400 group-hover:text-gray-200'
